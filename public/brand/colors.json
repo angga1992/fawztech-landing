@@ -1,0 +1,62 @@
+{
+  "palette": {
+    "navy-900": "#071A2F",
+    "navy-700": "#0B2A4A",
+    "navy-500": "#1F4E79",
+    "amber-500": "#F5A623",
+    "amber-200": "#FCE3B0",
+    "teal-600": "#0B7A7C",
+    "teal-400": "#2CC3C5",
+    "mist-100": "#EEF3F7"
+  },
+  "semantic": {
+    "surface": {
+      "light": "#F6F8FA",
+      "dark": "#071A2F"
+    },
+    "surface-raised": {
+      "light": "#FFFFFF",
+      "dark": "#0B2A4A"
+    },
+    "surface-sunken": {
+      "light": "#EEF3F7",
+      "dark": "#0A2038"
+    },
+    "ink": {
+      "light": "#0B1F33",
+      "dark": "#F1F5F9"
+    },
+    "ink-muted": {
+      "light": "#4A5D70",
+      "dark": "#A8B8C8"
+    },
+    "line": {
+      "light": "#D5DEE6",
+      "dark": "#1F4466"
+    },
+    "line-strong": {
+      "light": "#6B7F92",
+      "dark": "#6F8CA8"
+    },
+    "action": {
+      "light": "#0B2A4A",
+      "dark": "#F5A623"
+    },
+    "on-action": {
+      "light": "#FFFFFF",
+      "dark": "#071A2F"
+    },
+    "link": {
+      "light": "#0B7A7C",
+      "dark": "#2CC3C5"
+    },
+    "focus-ring": {
+      "light": "#0B7A7C",
+      "dark": "#F5A623"
+    },
+    "danger": {
+      "light": "#B3261E",
+      "dark": "#FF8A80"
+    }
+  }
+}

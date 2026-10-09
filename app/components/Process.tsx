@@ -1,81 +1,41 @@
-"use client";
+import Image from "next/image";
+import type { Dictionary } from "@/lib/i18n/dictionary";
+import Eyebrow from "./ui/Eyebrow";
+import Reveal from "./ui/Reveal";
 
-import { motion } from "framer-motion";
+// Tangga: tiap langkah lebih tinggi dari sebelumnya (hanya ≥ 1024px). Langkah terakhir diberi blok amber.
+const lift = ["", "lg:mb-10", "lg:mb-20", "lg:mb-[120px]"];
 
-const steps = [
-  {
-    n: "I",
-    t: "Discovery",
-    d: "Workshop dua minggu. Memetakan ambisi bisnis ke arsitektur, risiko, dan KPI yang dapat diukur.",
-  },
-  {
-    n: "II",
-    t: "Architecture",
-    d: "Stack, data model, integrasi. Dokumen ADR, RFC, dan blueprint sistem ditandatangani sebelum baris kode pertama.",
-  },
-  {
-    n: "III",
-    t: "Build",
-    d: "Sprint dua-mingguan, demo terbuka, CI/CD sejak hari pertama. Setiap commit reviewable.",
-  },
-  {
-    n: "IV",
-    t: "Harden",
-    d: "Pen-test, observability, performance budget. Standar SLA: 99.9% atau lebih baik.",
-  },
-  {
-    n: "V",
-    t: "Operate",
-    d: "Maintenance proaktif, on-call rotation, dan roadmap evolusi 12 bulan ke depan.",
-  },
-];
-
-export default function Process() {
+export default function Process({ t }: { t: Dictionary }) {
+  const p = t.process;
   return (
-    <section
-      id="process"
-      className="relative py-20 sm:py-28 lg:py-40 border-t border-black/5"
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-10">
-        <div className="grid grid-cols-12 gap-4 sm:gap-6 mb-12 sm:mb-16">
-          <div className="col-span-12 md:col-span-5">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.24em] sm:tracking-[0.3em] text-electric flex items-center gap-3 font-mono">
-              <span className="w-6 sm:w-8 h-px bg-electric" /> 04 — Process
-            </p>
-            <h2 className="mt-5 sm:mt-6 font-display font-medium text-[clamp(2.25rem,6vw,4rem)] leading-[0.95] tracking-[-0.04em] text-balance">
-              Lima fase. <em className="text-plasma not-italic font-light">Nol</em> kejutan.
-            </h2>
-          </div>
-          <div className="col-span-12 md:col-span-6 md:col-start-7 self-end">
-            <p className="text-ink-dim text-sm sm:text-base leading-relaxed text-pretty">
-              Engineering tanpa drama: setiap fase memiliki gerbang keluar yang jelas, deliverable yang terukur, dan referensi ADR untuk setiap keputusan arsitektural.
-            </p>
-          </div>
-        </div>
+    <section id="cara-kerja" className="py-12 lg:py-16">
+      <div className="mx-auto max-w-content px-4 md:px-8">
+        <Eyebrow>{p.eyebrow}</Eyebrow>
+        <h2 className="mt-2 text-display-lg-sm sm:text-display-lg">{p.h2}</h2>
 
-        <div className="relative">
-          <div className="absolute left-0 right-0 top-6 h-px bg-gradient-to-r from-transparent via-electric/40 to-transparent hidden md:block" />
-          <ol className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-6">
-            {steps.map((s, i) => (
-              <motion.li
-                key={s.n}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: i * 0.1 }}
-                className="relative pl-16 md:pl-0 md:pt-16"
-              >
-                <div className="absolute top-0 left-0 w-11 h-11 sm:w-12 sm:h-12 grid place-items-center rounded-full bg-white border border-black/10 font-mono text-xs text-electric">
-                  {s.n}
+        <ol className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:items-end list-none p-0">
+          {p.steps.map((step, i) => {
+            const last = i === p.steps.length - 1;
+            return (
+              <Reveal as="li" key={step.n} className={lift[i]}>
+                <div className={last ? "bg-amber-500 rounded-lg p-3" : ""}>
+                  <Image
+                    src={step.image}
+                    alt=""
+                    width={400}
+                    height={340}
+                    unoptimized
+                    className="rounded-lg w-full h-auto"
+                  />
                 </div>
-                <h3 className="font-display font-medium text-xl sm:text-2xl mb-2 sm:mb-3 tracking-[-0.02em]">{s.t}</h3>
-                <p className="text-ink-dim text-sm leading-relaxed text-pretty">
-                  {s.d}
-                </p>
-              </motion.li>
-            ))}
-          </ol>
-        </div>
+                <p className="mt-3.5 font-mono text-code text-teal-600">{step.n}</p>
+                <h3 className="text-headline font-extrabold">{step.name}</h3>
+                <p className="mt-1 text-body text-ink-muted">{step.text}</p>
+              </Reveal>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );

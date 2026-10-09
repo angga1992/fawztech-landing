@@ -1,0 +1,47 @@
+/* Fawz Tech - token warna dan font. Tema gelap: <html data-theme="dark"> */
+:root {
+  --fawz-navy-900: #071A2F;
+  --fawz-navy-700: #0B2A4A;
+  --fawz-navy-500: #1F4E79;
+  --fawz-amber-500: #F5A623;
+  --fawz-amber-200: #FCE3B0;
+  --fawz-teal-600: #0B7A7C;
+  --fawz-teal-400: #2CC3C5;
+  --fawz-mist-100: #EEF3F7;
+  --fawz-accent: #F5A623;
+  --fawz-on-accent: #071A2F;
+  --fawz-surface: #F6F8FA;
+  --fawz-surface-raised: #FFFFFF;
+  --fawz-surface-sunken: #EEF3F7;
+  --fawz-ink: #0B1F33;
+  --fawz-ink-muted: #4A5D70;
+  --fawz-line: #D5DEE6;
+  --fawz-line-strong: #6B7F92;
+  --fawz-action: #0B2A4A;
+  --fawz-on-action: #FFFFFF;
+  --fawz-link: #0B7A7C;
+  --fawz-focus-ring: #0B7A7C;
+  --fawz-danger: #B3261E;
+  --fawz-font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --fawz-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --fawz-radius-sm: 6px;
+  --fawz-radius-md: 12px;
+  --fawz-radius-lg: 20px;
+  /* Tambahan: hover tombol amber (panduan desain §7). */
+  --fawz-amber-400: #FFB94A;
+}
+[data-theme="dark"],
+.theme-dark {
+  --fawz-surface: #071A2F;
+  --fawz-surface-raised: #0B2A4A;
+  --fawz-surface-sunken: #0A2038;
+  --fawz-ink: #F1F5F9;
+  --fawz-ink-muted: #A8B8C8;
+  --fawz-line: #1F4466;
+  --fawz-line-strong: #6F8CA8;
+  --fawz-action: #F5A623;
+  --fawz-on-action: #071A2F;
+  --fawz-link: #2CC3C5;
+  --fawz-focus-ring: #F5A623;
+  --fawz-danger: #FF8A80;
+}

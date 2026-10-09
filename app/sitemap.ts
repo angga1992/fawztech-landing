@@ -1,12 +1,24 @@
 import type { MetadataRoute } from "next";
+import { LOCALES } from "@/lib/i18n/config";
+import { pathFor, ROUTES, type RouteKey } from "@/lib/i18n/routes";
+import { absoluteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://nexvoid.id";
   const now = new Date();
-  return [
-    { url: `${base}/`, lastModified: now, changeFrequency: "monthly", priority: 1 },
-    { url: `${base}/#solutions`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${base}/#about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/#contact`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-  ];
+  const entries: MetadataRoute.Sitemap = [];
+  for (const key of Object.keys(ROUTES) as RouteKey[]) {
+    const languages: Record<string, string> = {};
+    for (const l of LOCALES) languages[l] = absoluteUrl(pathFor(l, key));
+    languages["x-default"] = absoluteUrl(pathFor("id", key));
+    for (const l of LOCALES) {
+      entries.push({
+        url: absoluteUrl(pathFor(l, key)),
+        lastModified: now,
+        changeFrequency: key === "home" ? "monthly" : "yearly",
+        priority: key === "home" ? 1 : 0.3,
+        alternates: { languages },
+      });
+    }
+  }
+  return entries;
 }
