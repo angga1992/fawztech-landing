@@ -26,6 +26,7 @@ export type LeadPayload = {
   setuju: true;
   website: string;
   turnstile_token: string;
+  recaptcha_token: string;
   utm_source: string;
   utm_medium: string;
   utm_campaign: string;
@@ -34,7 +35,7 @@ export type LeadPayload = {
   privacy_version: string;
 };
 
-export type LeadErrors = Partial<Record<keyof LeadPayload | "turnstile", string>>;
+export type LeadErrors = Partial<Record<keyof LeadPayload | "captcha" | "turnstile", string>>;
 
 export type ValidationResult = { ok: true; data: LeadPayload } | { ok: false; errors: LeadErrors };
 
@@ -125,6 +126,7 @@ export function validateLead(input: Record<string, unknown>, messages: Messages 
       setuju: true,
       website: str(input.website, 200),
       turnstile_token: str(input.turnstile_token, 4096),
+      recaptcha_token: str(input.recaptcha_token, 4096),
       utm_source: str(input.utm_source),
       utm_medium: str(input.utm_medium),
       utm_campaign: str(input.utm_campaign),

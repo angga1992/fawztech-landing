@@ -41,7 +41,7 @@ Form SHALL memvalidasi sebelum mengirim dengan aturan yang sama dengan server (`
 - **THEN** validasi klien lolos
 
 ### Requirement: Pengiriman dan status
-Form SHALL mengirim `POST /api/leads` dengan JSON sesuai kontrak `internal-app.md` (`nama`, `kontak`, `bisnis`, `kebutuhan`, `cerita`, `setuju`, `website`, `turnstile_token`, `utm_source`, `utm_medium`, `utm_campaign`, `page_url`, `referrer`) ditambah `privacy_version` dan `locale` (`"id"` atau `"en"`). Selama mengirim, tombol MUST nonaktif dan berlabel "Mengirim…"/"Sending…". Saat `201`, form MUST diganti pesan sukses dari kamus ("Terima kasih. Kami akan menghubungimu dalam <X> hari kerja." / "Thank you. We'll get back to you within <X> business days.") dengan `role="status"`. Saat `422`, pesan per field dari respons MUST ditampilkan. Saat `429`, pesan `tooMany` dari kamus. Saat galat lain atau jaringan putus, pesan `forwardFailed` dari kamus ditampilkan dan data isian MUST tetap ada.
+Form SHALL mengirim `POST /api/leads` dengan JSON sesuai kontrak `internal-app.md` (`nama`, `kontak`, `bisnis`, `kebutuhan`, `cerita`, `setuju`, `website`, `turnstile_token`, `utm_source`, `utm_medium`, `utm_campaign`, `page_url`, `referrer`) ditambah `privacy_version`, `locale` (`"id"` atau `"en"`), dan `recaptcha_token` (kosong bila penyedia bukan reCAPTCHA). Selama mengirim, tombol MUST nonaktif dan berlabel "Mengirim…"/"Sending…". Saat `201`, form MUST diganti pesan sukses dari kamus ("Terima kasih. Kami akan menghubungimu dalam <X> hari kerja." / "Thank you. We'll get back to you within <X> business days.") dengan `role="status"`. Saat `422`, pesan per field dari respons MUST ditampilkan; galat `captcha` (atau `turnstile`) ditampilkan sebagai galat form dengan tautan WhatsApp. Saat `429`, pesan `tooMany` dari kamus. Saat galat lain atau jaringan putus, pesan `forwardFailed` dari kamus ditampilkan dan data isian MUST tetap ada.
 
 #### Scenario: Sukses
 - **WHEN** server membalas `201`
@@ -55,6 +55,10 @@ Form SHALL mengirim `POST /api/leads` dengan JSON sesuai kontrak `internal-app.m
 - **WHEN** server membalas `422 {"errors": {"kontak": "…"}}`
 - **THEN** pesan tersebut tampil di bawah field `kontak` dan fokus pindah ke sana
 
+#### Scenario: Galat captcha dari server
+- **WHEN** server membalas `422 {"errors": {"captcha": "Verifikasi gagal. …"}}`
+- **THEN** pesan tampil dengan `role="alert"` beserta tautan "Buka WhatsApp", isian tetap ada
+
 #### Scenario: Jaringan gagal
 - **WHEN** `fetch` melempar galat
 - **THEN** pesan galat umum tampil dengan `role="alert"`, tombol kembali aktif, dan isian pengguna tidak hilang
@@ -66,12 +70,16 @@ Form SHALL membaca `utm_source`, `utm_medium`, `utm_campaign` dari query string 
 - **WHEN** halaman dibuka dengan `?utm_source=instagram&utm_medium=bio&utm_campaign=launch` dan form dikirim
 - **THEN** payload memuat ketiga nilai tersebut dan `page_url` berisi URL halaman
 
-### Requirement: Turnstile opsional
-Bila `NEXT_PUBLIC_TURNSTILE_SITE_KEY` dikonfigurasi, form SHALL memuat widget Cloudflare Turnstile secara malas (lazy) setelah interaksi pertama pengguna dengan form dan menyertakan `turnstile_token`. Bila tidak dikonfigurasi, form MUST tetap berfungsi dan mengirim `turnstile_token` kosong.
+### Requirement: Captcha opsional berpenyedia
+Form SHALL mengikuti penyedia captcha aktif (spec `captcha-provider`): `recaptcha` → skrip dimuat malas dan token diminta saat kirim; `turnstile` → widget Cloudflare dimuat malas setelah interaksi pertama dan `turnstile_token` disertakan; `none` → tidak ada skrip pihak ketiga dan kedua token kosong. Form MUST tetap berfungsi pada ketiga mode.
 
-#### Scenario: Tanpa kunci Turnstile
-- **WHEN** variabel site key kosong
-- **THEN** tidak ada skrip `challenges.cloudflare.com` dimuat dan pengiriman berhasil
+#### Scenario: Tanpa penyedia
+- **WHEN** kedua site key kosong
+- **THEN** tidak ada skrip `google.com/recaptcha` maupun `challenges.cloudflare.com` dimuat dan pengiriman berhasil
+
+#### Scenario: Turnstile tetap didukung
+- **WHEN** hanya `NEXT_PUBLIC_TURNSTILE_SITE_KEY` terisi
+- **THEN** widget Turnstile dimuat setelah interaksi pertama dan `turnstile_token` dikirim
 
 ### Requirement: Form tetap bisa dipakai tanpa JavaScript lanjut
 Form MUST berupa elemen `<form method="post" action="/api/leads">` dengan `novalidate` sehingga pengiriman tetap sampai ke server bila hidrasi gagal, dan server membalas halaman/teks yang dapat dibaca.

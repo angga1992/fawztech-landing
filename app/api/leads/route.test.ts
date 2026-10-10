@@ -48,6 +48,8 @@ beforeEach(() => {
   vi.stubEnv("LEADS_WEBHOOK_URL", "");
   vi.stubEnv("LEADS_API_TOKEN", "");
   vi.stubEnv("TURNSTILE_SECRET_KEY", "");
+  vi.stubEnv("RECAPTCHA_SECRET_KEY", "");
+  vi.stubEnv("RECAPTCHA_HOSTNAMES", "domainanda.id");
 });
 
 afterEach(() => {
@@ -186,12 +188,48 @@ describe("POST /api/leads", () => {
     expect(res.status).toBe(201);
   });
 
-  it("Turnstile gagal: 422 pada field turnstile", async () => {
+  it("Turnstile gagal (mode webhook): 422 pada field captcha", async () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
     fetchMock.mockResolvedValueOnce(upstream(200, { success: false }));
     const res = await POST(req({ ...valid, turnstile_token: "tok" }));
     expect(res.status).toBe(422);
-    expect((await res.json()).errors.turnstile).toBe(MESSAGES.turnstile);
+    expect((await res.json()).errors.captcha).toBe(MESSAGES.captcha);
+  });
+
+  it("reCAPTCHA: token diteruskan ke hulu tanpa siteverify saat LEADS_API_URL terisi", async () => {
+    vi.stubEnv("RECAPTCHA_SECRET_KEY", "secret");
+    vi.stubEnv("LEADS_API_URL", "https://internal.example/api/public/leads");
+    fetchMock.mockResolvedValueOnce(upstream(201, { id: "hulu-r" }));
+    const res = await POST(req({ ...valid, recaptcha_token: "rtok" }));
+    expect(res.status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe("https://internal.example/api/public/leads");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).recaptcha_token).toBe("rtok");
+  });
+
+  it("reCAPTCHA mode webhook: skor rendah → 422 tanpa penerusan; skor cukup → 201", async () => {
+    vi.stubEnv("RECAPTCHA_SECRET_KEY", "secret");
+    vi.stubEnv("LEADS_WEBHOOK_URL", "https://hook.example/x");
+    fetchMock.mockResolvedValueOnce(upstream(200, { success: true, score: 0.1, action: "lead_submit", hostname: "domainanda.id" }));
+    const low = await POST(req({ ...valid, recaptcha_token: "rtok", locale: "en" }));
+    expect(low.status).toBe(422);
+    expect((await low.json()).errors.captcha).toBe("Verification failed. Reload the page and try again.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toContain("google.com/recaptcha/api/siteverify");
+
+    fetchMock.mockResolvedValueOnce(upstream(200, { success: true, score: 0.9, action: "lead_submit", hostname: "domainanda.id" }));
+    fetchMock.mockResolvedValueOnce(new Response("ok", { status: 200 }));
+    const ok = await POST(req({ ...valid, cerita: "lain", recaptcha_token: "rtok2" }));
+    expect(ok.status).toBe(201);
+    expect(fetchMock.mock.calls[2][0]).toBe("https://hook.example/x");
+  });
+
+  it("tanpa secret captcha: dilewati", async () => {
+    vi.stubEnv("LEADS_WEBHOOK_URL", "https://hook.example/x");
+    fetchMock.mockResolvedValueOnce(new Response("ok", { status: 200 }));
+    const res = await POST(req({ ...valid, cerita: "tanpa captcha" }));
+    expect(res.status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("form-urlencoded: sukses → 303 ke /?terkirim=1#kontak; galat → teks terbaca", async () => {

@@ -36,6 +36,7 @@ export const site = {
   replyDays: env(process.env.NEXT_PUBLIC_REPLY_DAYS, PLACEHOLDER.replyDays),
   plausibleDomain: env(process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN, ""),
   turnstileSiteKey: env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY, ""),
+  recaptchaSiteKey: env(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, ""),
 } as const;
 
 /** Daftar nilai yang masih placeholder; dipakai untuk peringatan saat build. */

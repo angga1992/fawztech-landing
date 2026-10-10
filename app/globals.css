@@ -112,3 +112,8 @@ html {
 [data-theme="dark"] .logo-dark {
   display: block;
 }
+
+/* Badge reCAPTCHA disembunyikan; atribusi wajib ditampilkan sebagai teks di bawah tombol kirim. */
+.grecaptcha-badge {
+  visibility: hidden;
+}

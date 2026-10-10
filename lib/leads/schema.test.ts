@@ -134,6 +134,13 @@ describe("validateLead dengan kamus pesan lain", () => {
       expect(r.errors.setuju).toBe("Please tick the consent box to continue");
     }
   });
+  it("meneruskan recaptcha_token dan memotongnya ke 4096", () => {
+    const r = validateLead({ ...valid, recaptcha_token: "x".repeat(5000) });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.recaptcha_token.length).toBe(4096);
+    const r2 = validateLead(valid);
+    if (r2.ok) expect(r2.data.recaptcha_token).toBe("");
+  });
   it("membuang field locale dari payload", () => {
     const r = validateLead({ ...valid, locale: "en" });
     expect(r.ok).toBe(true);

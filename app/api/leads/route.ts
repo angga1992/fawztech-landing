@@ -4,7 +4,7 @@ import { leadHash, newLeadId } from "@/lib/leads/rate-limit";
 import { idem, limiter } from "@/lib/leads/state";
 import { MESSAGES_ID, messagesFor } from "@/lib/leads/messages";
 import { MAX_BODY_BYTES, validateLead } from "@/lib/leads/schema";
-import { verifyTurnstile } from "@/lib/leads/turnstile";
+import { verifyCaptchaLocally } from "@/lib/captcha/verify";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -126,11 +126,12 @@ export async function POST(req: Request) {
   }
   const payload = { ...result.data, privacy_version: PRIVACY_POLICY_VERSION };
 
-  // 5. Turnstile (dilewati bila secret kosong).
-  const human = await verifyTurnstile(payload.turnstile_token, ip);
-  if (!human) {
-    log({ event: "turnstile_failed" });
-    return json(req, 422, { errors: { turnstile: MESSAGES.turnstile } });
+  // 5. Captcha. Token reCAPTCHA sekali pakai: bila ada sistem internal (LEADS_API_URL), token diteruskan
+  //    dan diverifikasi di sana; landing memverifikasi sendiri hanya pada mode webhook/log.
+  if (!process.env.LEADS_API_URL?.trim()) {
+    const c = await verifyCaptchaLocally(payload, ip);
+    if (c.provider !== "none") log({ event: "captcha", provider: c.provider, ok: c.ok, score: c.score, reason: c.reason });
+    if (!c.ok) return json(req, 422, { errors: { captcha: MESSAGES.captcha } });
   }
 
   // 6. Idempotensi: kiriman identik dalam 10 menit tidak diteruskan ulang.

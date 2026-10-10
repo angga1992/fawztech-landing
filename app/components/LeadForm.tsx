@@ -1,21 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import { fill, type Dictionary } from "@/lib/i18n/dictionary";
 import type { Messages } from "@/lib/leads/messages";
 import { MAX_STORY, validateLead, type LeadErrors } from "@/lib/leads/schema";
 import { PRIVACY_POLICY_VERSION } from "@/lib/privacy";
 import { site } from "@/lib/site";
+import { captchaProvider } from "@/lib/captcha/provider";
 import Button from "./ui/Button";
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (el: HTMLElement, opts: { sitekey: string; callback: (t: string) => void; "expired-callback"?: () => void }) => string;
-    };
-  }
-}
+import { useCaptcha } from "./useCaptcha";
 
 type Values = {
   nama: string;
@@ -48,10 +42,10 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
   const [errors, setErrors] = useState<LeadErrors>({});
   const [status, setStatus] = useState<Status>("idle");
   const [formError, setFormError] = useState<string | null>(null);
-  const [token, setToken] = useState("");
   const utm = useRef({ utm_source: "", utm_medium: "", utm_campaign: "", page_url: "", referrer: "" });
-  const turnstileRef = useRef<HTMLDivElement>(null);
-  const turnstileLoaded = useRef(false);
+  const provider = captchaProvider();
+  const widgetRef = useRef<HTMLDivElement>(null);
+  const { ensureLoaded, getTokens } = useCaptcha(provider, widgetRef);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -63,28 +57,6 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
       referrer: document.referrer ?? "",
     };
     if (q.get("terkirim") === "1") setStatus("success");
-  }, []);
-
-  // Muat Turnstile secara malas saat pengguna pertama kali berinteraksi dengan form.
-  const ensureTurnstile = useCallback(() => {
-    if (!site.turnstileSiteKey || turnstileLoaded.current) return;
-    turnstileLoaded.current = true;
-    const render = () => {
-      if (turnstileRef.current && window.turnstile) {
-        window.turnstile.render(turnstileRef.current, {
-          sitekey: site.turnstileSiteKey,
-          callback: (t) => setToken(t),
-          "expired-callback": () => setToken(""),
-        });
-      }
-    };
-    if (window.turnstile) return render();
-    const s = document.createElement("script");
-    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    s.async = true;
-    s.defer = true;
-    s.onload = render;
-    document.head.appendChild(s);
   }, []);
 
   const set = <K extends keyof Values>(k: K, v: Values[K]) => setValues((s) => ({ ...s, [k]: v }));
@@ -107,13 +79,15 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
     setErrors({});
     setStatus("submitting");
     try {
+      // Token captcha diminta tepat sebelum kirim (reCAPTCHA v3: sekali pakai, berlaku 2 menit).
+      const tokens = await getTokens();
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           ...values,
           website: "",
-          turnstile_token: token,
+          ...tokens,
           privacy_version: PRIVACY_POLICY_VERSION,
           locale,
           ...utm.current,
@@ -128,7 +102,7 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
       if (res.status === 422) {
         const body = (await res.json().catch(() => ({}))) as { errors?: LeadErrors };
         const errs = body.errors ?? {};
-        if (errs.turnstile) setFormError(errs.turnstile);
+        if (errs.captcha || errs.turnstile) setFormError(errs.captcha ?? errs.turnstile ?? null);
         setErrors(errs);
         focusFirstError(errs);
         return;
@@ -175,7 +149,7 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
       action="/api/leads"
       noValidate
       onSubmit={onSubmit}
-      onFocusCapture={ensureTurnstile}
+      onFocusCapture={ensureLoaded}
       className="theme-dark bg-surface-raised border border-line rounded-lg p-6 grid gap-[18px]"
     >
       <div>
@@ -323,7 +297,7 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
         {err("setuju")}
       </div>
 
-      {site.turnstileSiteKey ? <div ref={turnstileRef} /> : null}
+      {provider === "turnstile" ? <div ref={widgetRef} /> : null}
 
       {formError ? (
         <p role="alert" className="text-body-sm text-danger">
@@ -343,6 +317,24 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
         <Button type="submit" variant="amber" disabled={status === "submitting"}>
           {status === "submitting" ? c.submitting : c.submit}
         </Button>
+        {provider === "recaptcha" ? (
+          /* Atribusi wajib Google karena badge reCAPTCHA disembunyikan. */
+          <p className="mt-3 text-body-sm text-ink-muted">
+            {c.captchaNotice.split(/(\{privacy\}|\{terms\})/).map((part, i) =>
+              part === "{privacy}" ? (
+                <a key={i} href="https://policies.google.com/privacy" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
+                  {c.captchaPrivacy}
+                </a>
+              ) : part === "{terms}" ? (
+                <a key={i} href="https://policies.google.com/terms" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
+                  {c.captchaTerms}
+                </a>
+              ) : (
+                part
+              )
+            )}
+          </p>
+        ) : null}
       </div>
     </form>
   );

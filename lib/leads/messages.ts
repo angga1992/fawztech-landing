@@ -8,6 +8,8 @@ export const MESSAGES_ID = {
   needs: "Pilihan tidak dikenali",
   consent: "Centang persetujuan untuk melanjutkan",
   tooLong: "Terlalu panjang",
+  captcha: "Verifikasi gagal. Muat ulang halaman dan coba lagi.",
+  /** Alias lama; sistem internal versi awal memakai kunci ini. */
   turnstile: "Verifikasi gagal. Muat ulang halaman dan coba lagi.",
   badBody: "Bentuk data tidak dikenali.",
   tooMany: "Terlalu banyak percobaan. Coba lagi beberapa menit.",
@@ -24,6 +26,7 @@ export const MESSAGES_EN: Messages = {
   needs: "Unknown option",
   consent: "Please tick the consent box to continue",
   tooLong: "Too long",
+  captcha: "Verification failed. Reload the page and try again.",
   turnstile: "Verification failed. Reload the page and try again.",
   badBody: "Unrecognised request format.",
   tooMany: "Too many attempts. Please try again in a few minutes.",

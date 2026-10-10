@@ -150,6 +150,10 @@ export const id = {
       remaining: "Tersisa {n} karakter.",
       honeypotLabel: "Jangan diisi",
       openWhatsApp: "Buka WhatsApp",
+      /** Atribusi reCAPTCHA; {privacy} dan {terms} diganti tautan. */
+      captchaNotice: "Situs ini dilindungi reCAPTCHA; {privacy} dan {terms} Google berlaku.",
+      captchaPrivacy: "Kebijakan Privasi",
+      captchaTerms: "Persyaratan Layanan",
     },
   },
   footer: {

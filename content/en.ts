@@ -152,6 +152,10 @@ export const en = {
       remaining: "{n} characters left.",
       honeypotLabel: "Leave this empty",
       openWhatsApp: "Open WhatsApp",
+      /** reCAPTCHA attribution; {privacy} and {terms} become links. */
+      captchaNotice: "This site is protected by reCAPTCHA and the Google {privacy} and {terms} apply.",
+      captchaPrivacy: "Privacy Policy",
+      captchaTerms: "Terms of Service",
     },
   },
   footer: {

@@ -52,3 +52,10 @@ Teks Inggris SHALL memakai "we" untuk Fawz Tech dan "you/your" untuk klien, kali
 #### Scenario: Tanggal versi privasi
 - **WHEN** `/privasi` dan `/en/privacy` dirender dengan `PRIVACY_POLICY_VERSION` "2026-10-09"
 - **THEN** masing-masing menampilkan "9 Oktober 2026" dan "9 October 2026"
+
+### Requirement: Teks captcha dalam dua bahasa
+Kamus `id` dan `en` SHALL memuat `contact.form.captchaNotice` (teks atribusi reCAPTCHA dengan placeholder tautan `{privacy}` dan `{terms}`), `contact.form.captchaPrivacy` ("Kebijakan Privasi"/"Privacy Policy"), `contact.form.captchaTerms` ("Persyaratan Layanan"/"Terms of Service"), dan `MESSAGES_*.captcha` ("Verifikasi gagal. Muat ulang halaman dan coba lagi." / "Verification failed. Reload the page and try again."), dengan kunci yang identik di kedua kamus.
+
+#### Scenario: Kunci lengkap
+- **WHEN** uji kamus dijalankan
+- **THEN** kunci `captchaNotice`, `captchaPrivacy`, `captchaTerms` ada di `id` dan `en`, dan `captchaNotice` memuat `{privacy}` serta `{terms}`

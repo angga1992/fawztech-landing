@@ -1,0 +1,20 @@
+## 1. Penyedia dan verifikasi
+- [x] 1.1 Buat `lib/captcha/provider.ts`: `captchaProvider()` dari env (`recaptcha` > `turnstile` > `none`), `RECAPTCHA_ACTION = "lead_submit"`, ekspor site key; perbarui `lib/site.ts` (`recaptchaSiteKey`)
+- [x] 1.2 Buat `lib/captcha/recaptcha.ts`: `verifyRecaptcha(token, ip, opts)` → `{ ok, score, reason }` sesuai spec `captcha-provider` (success, action, skor ≥ `RECAPTCHA_MIN_SCORE`, hostname ∈ `RECAPTCHA_HOSTNAMES`/hostname `SITE_URL`/localhost non-produksi, timeout 5 s, gagal tertutup, tanpa secret di log)
+- [x] 1.3 Tulis `lib/captcha/recaptcha.test.ts` dengan `fetch` di-mock: skor cukup, skor rendah, aksi berbeda, hostname asing, success false, timeout/galat jaringan, token kosong, ambang dari env
+- [x] 1.4 `lib/leads/messages.ts`: tambah `captcha` (id/en) dan pertahankan `turnstile` sebagai alias nilai yang sama; `lib/leads/schema.ts`: field `recaptcha_token` (≤ 4096) pada `LeadPayload` dan `validateLead`; perbarui uji schema
+
+## 2. Form
+- [x] 2.1 `LeadForm.tsx`: ganti pemuatan Turnstile dengan `useCaptcha(provider)`: `recaptcha` memuat `api.js?render=` saat interaksi pertama dan `execute({action})` saat submit (timeout 5 s, fallback token kosong); `turnstile` perilaku lama; kirim `recaptcha_token` dan `turnstile_token`; tampilkan `errors.captcha`/`errors.turnstile` sebagai galat form dengan tautan WhatsApp
+- [x] 2.2 Tambah atribusi reCAPTCHA di bawah tombol kirim dari kamus (`captchaNotice` dengan tautan `{privacy}`/`{terms}`) hanya bila penyedia `recaptcha`; CSS `.grecaptcha-badge { visibility: hidden }` di `globals.css`
+- [x] 2.3 `content/id.ts` dan `content/en.ts`: kunci `captchaNotice`, `captchaPrivacy`, `captchaTerms`; bagian pihak ketiga privasi menyebut Google reCAPTCHA; perbarui `lib/i18n/dictionary.test.ts` untuk kunci baru
+- [x] 2.4 Verifikasi: `tsc`, `lint`, `npm test` hijau; dengan site key kosong, HTML `/` tidak memuat `google.com/recaptcha`
+
+## 3. API landing
+- [x] 3.1 `app/api/leads/route.ts`: setelah validasi, bila `LEADS_API_URL` kosong → verifikasi lokal (`RECAPTCHA_SECRET_KEY` → `verifyRecaptcha`; selain itu `TURNSTILE_SECRET_KEY` → `verifyTurnstile`), gagal → `422 {"errors": {"captcha": MESSAGES.captcha}}`; bila `LEADS_API_URL` terisi → tidak memverifikasi, teruskan kedua token apa adanya; log `event: "captcha"`, `score`, `reason` tanpa token
+- [x] 3.2 `app/api/leads/route.test.ts`: token diteruskan tanpa `siteverify` saat `LEADS_API_URL` terisi; mode webhook + skor rendah → 422 tanpa penerusan; mode webhook + skor cukup → 201; tanpa secret → dilewati; pesan `captcha` mengikuti `locale`
+- [x] 3.3 `.env.example` dan README: `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY`, `RECAPTCHA_MIN_SCORE`, `RECAPTCHA_HOSTNAMES`, cara membuat kunci di Google reCAPTCHA Admin (tipe v3, domain landing + localhost untuk dev), catatan token sekali pakai dan verifikasi di sistem internal
+
+## 4. Verifikasi akhir
+- [x] 4.1 `npm test`, `lint`, `build` hijau; Lighthouse mobile `/` dengan site key uji terisi: Performance ≥ 90 dan tidak ada permintaan reCAPTCHA sebelum interaksi (periksa daftar permintaan jaringan) — Hasil 10 Okt 2026 (build produksi dengan site key uji Google, Lighthouse 12 mobile Slow 4G): Performance 96, Accessibility 100, Best Practices 100, SEO 100, FCP 1,36 s, LCP 2,49 s, CLS 0,06; audit network-requests tanpa interaksi: 25 permintaan, tidak ada ke google.com/gstatic/cloudflare; HTML awal tanpa skrip reCAPTCHA; atribusi dan tautan policies.google.com ada di `/` dan `/en`; `.grecaptcha-badge{visibility:hidden}` ada di CSS
+- [x] 4.2 Uji alur dengan kunci uji Google (`6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI` / `6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe`, selalu lolos) end-to-end bersama change `add-recaptcha-verification` di `fawz-internal`: form → landing → sistem internal menyimpan skor — 10 Okt 2026: dengan `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` uji di landing dan `RECAPTCHA_SECRET_KEY` uji di sistem internal, kiriman dari landing diteruskan tanpa verifikasi lokal, diverifikasi sekali di internal (`siteverify` sungguhan), tersimpan dengan skor; kiriman tanpa token → 422 `captcha`

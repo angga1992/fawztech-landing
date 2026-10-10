@@ -47,7 +47,8 @@ Lihat `.env.example`. Ringkasnya:
 | `NEXT_PUBLIC_INSTAGRAM`, `NEXT_PUBLIC_LINKEDIN` | Tautan sosial di footer |
 | `NEXT_PUBLIC_REPLY_DAYS` | Angka hari kerja pada pesan sukses form |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analitik tanpa cookie (opsional) |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile (opsional; dilewati bila kosong) |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY`, `RECAPTCHA_MIN_SCORE`, `RECAPTCHA_HOSTNAMES` | Google reCAPTCHA v3 pada form prospek (penyedia utama) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile (alternatif; dipakai hanya bila site key reCAPTCHA kosong) |
 | `LEADS_API_URL`, `LEADS_API_TOKEN` | Endpoint `POST /api/public/leads` sistem internal Fawz Tech |
 | `LEADS_WEBHOOK_URL` | Webhook cadangan (n8n, Make, Apps Script) bila sistem internal belum ada |
 | `LEADS_ALLOWED_ORIGIN` | Origin lain yang boleh memanggil `/api/leads` (opsional) |
@@ -74,6 +75,12 @@ curl -i --cookie "NEXT_LOCALE=id" -H "x-country-code: US" http://localhost:3000/
 Pesan 422 yang berasal dari sistem internal tetap berbahasa Indonesia (kontrak `internal-app.md`); pesan buatan landing page mengikuti field `locale` di body.
 
 Batasan Next 14: karena root layout berada di `app/[locale]/`, respons 404 berstatus benar tetapi isi halaman not-found berbahasa baru tampil setelah hidrasi JavaScript.
+
+## Captcha (reCAPTCHA v3)
+
+Penyedia dipilih dari env: reCAPTCHA v3 bila `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` diisi, Turnstile bila hanya site key Turnstile, tanpa captcha bila keduanya kosong. Skrip Google dimuat saat pengguna pertama kali berinteraksi dengan form (bukan saat halaman dibuka), dan token diminta saat kirim dengan aksi `lead_submit`. Badge disembunyikan; teks atribusi Google tampil di bawah tombol kirim.
+
+Token reCAPTCHA sekali pakai, jadi verifikasi terjadi tepat sekali: di sistem internal bila `LEADS_API_URL` terisi (token diteruskan apa adanya), atau di landing pada mode webhook/log. Aturan verifikasi: `success`, `action = lead_submit`, skor ≥ `RECAPTCHA_MIN_SCORE` (0,5), hostname ∈ `RECAPTCHA_HOSTNAMES` (bawaan hostname `SITE_URL`; `localhost` diizinkan di luar produksi). Google tidak terjangkau → ditolak. Buat kunci di Google reCAPTCHA Admin (tipe v3) dengan domain landing dan `localhost`.
 
 ## Alur prospek
 
