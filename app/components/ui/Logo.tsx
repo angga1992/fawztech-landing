@@ -5,39 +5,26 @@ export default function Logo({
   variant = "auto",
   height = 32,
   className = "",
+  mark = false,
 }: {
   variant?: "auto" | "dark";
   height?: number;
   className?: string;
+  /** Hanya tanda F (untuk ruang sempit, panduan desain §2). */
+  mark?: boolean;
 }) {
-  const width = Math.round((272.6 / 48) * height);
+  const width = mark ? height : Math.round((272.6 / 48) * height);
+  const light = mark ? "/svg/fawz-tech-mark.svg" : "/svg/fawz-tech-logo-primary.svg";
+  const dark = mark ? "/svg/fawz-tech-mark-on-dark.svg" : "/svg/fawz-tech-logo-primary-on-dark.svg";
   if (variant === "dark") {
     return (
-      <img
-        src="/svg/fawz-tech-logo-primary-on-dark.svg"
-        alt="Fawz Tech"
-        width={width}
-        height={height}
-        className={className}
-      />
+      <img src={dark} alt="Fawz Tech" width={width} height={height} className={className} />
     );
   }
   return (
     <>
-      <img
-        src="/svg/fawz-tech-logo-primary.svg"
-        alt="Fawz Tech"
-        width={width}
-        height={height}
-        className={`logo-light ${className}`.trim()}
-      />
-      <img
-        src="/svg/fawz-tech-logo-primary-on-dark.svg"
-        alt="Fawz Tech"
-        width={width}
-        height={height}
-        className={`logo-dark ${className}`.trim()}
-      />
+      <img src={light} alt="Fawz Tech" width={width} height={height} className={`logo-light ${className}`.trim()} />
+      <img src={dark} alt="Fawz Tech" width={width} height={height} className={`logo-dark ${className}`.trim()} />
     </>
   );
 }

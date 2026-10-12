@@ -55,7 +55,7 @@ export default function Header({ t, locale, routeKey }: Props) {
       lang={other}
       aria-label={switchLabel}
       title={switchLabel}
-      className="inline-flex items-center gap-0.5 h-11 px-1 rounded-pill border border-line bg-surface-sunken no-underline hover:border-line-strong"
+      className="inline-flex items-center gap-0.5 h-11 px-1 rounded-pill border border-line bg-surface-sunken no-underline hover:border-line-strong shrink-0"
     >
       {flagSlot("id")}
       {flagSlot("en")}
@@ -64,12 +64,14 @@ export default function Header({ t, locale, routeKey }: Props) {
 
   return (
     <header className="sticky top-0 z-40 bg-surface border-b border-line">
-      <div className="mx-auto max-w-content px-4 md:px-8 h-header flex items-center gap-3 md:gap-6">
-        <a href={onHome ? "#atas" : home} aria-label={t.header.logoAria} className="inline-flex rounded-sm">
-          <Logo height={32} />
+      <div className="mx-auto max-w-content px-4 md:px-8 h-header flex items-center gap-2 sm:gap-3 lg:gap-6">
+        <a href={onHome ? "#atas" : home} aria-label={t.header.logoAria} className="inline-flex rounded-sm shrink-0">
+          {/* Layar sempit: tanda F saja agar logo, tombol utama, dan hamburger muat di 360px. */}
+          <span className="sm:hidden inline-flex"><Logo mark height={32} /></span>
+          <span className="hidden sm:inline-flex"><Logo height={32} /></span>
         </a>
 
-        <nav aria-label={t.header.navAria} className="hidden md:flex items-center gap-6 ml-auto">
+        <nav aria-label={t.header.navAria} className="hidden lg:flex items-center gap-5 xl:gap-6 ml-auto">
           {t.nav.map((it) => (
             <a
               key={it.href}
@@ -81,7 +83,12 @@ export default function Header({ t, locale, routeKey }: Props) {
           ))}
         </nav>
 
-        <Button href={section(t.navCta.href)} variant="primary" className="hidden xs:inline-flex ml-auto md:ml-0">
+        {/* Di bawah lg: logo + tombol utama + hamburger (brief: "logo + tombol, tautan lain masuk menu"). CTA satu baris. */}
+        <Button
+          href={section(t.navCta.href)}
+          variant="primary"
+          className="ml-auto lg:ml-0 whitespace-nowrap px-3 sm:px-4 lg:px-5 shrink-0"
+        >
           {t.navCta.label}
         </Button>
 
@@ -91,7 +98,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           aria-label={open ? t.header.menuClose : t.header.menuOpen}
           aria-expanded={open}
           aria-controls="menu-mobile"
-          className="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-sm border border-line-strong text-ink ml-auto xs:ml-0"
+          className="lg:hidden inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
             {open ? (
@@ -109,32 +116,39 @@ export default function Header({ t, locale, routeKey }: Props) {
           </svg>
         </button>
 
-        {toggle}
+        {/* Desktop (lg+): toggle bendera paling kanan. Di bawah lg toggle ada di dalam menu. */}
+        <div className="hidden lg:block">{toggle}</div>
       </div>
 
-      <nav id="menu-mobile" aria-label={t.header.navAria} hidden={!open} className="md:hidden border-t border-line bg-surface">
+      {/* Panel menu mobile: tautan seksi, pengalih bahasa, dan tombol utama. */}
+      <nav
+        id="menu-mobile"
+        aria-label={t.header.navAria}
+        hidden={!open}
+        className="lg:hidden absolute left-0 right-0 top-full border-b border-line bg-surface max-h-[calc(100vh-var(--header-h))] overflow-y-auto"
+      >
         <ul className="mx-auto max-w-content px-4 py-2">
           {t.nav.map((it) => (
             <li key={it.href}>
               <a
                 href={section(it.href)}
                 onClick={() => setOpen(false)}
-                className="flex items-center min-h-[44px] px-2 text-[16px] font-semibold text-ink no-underline rounded-sm hover:bg-surface-sunken"
+                className="flex items-center min-h-[48px] px-2 text-[16px] font-semibold text-ink no-underline rounded-sm hover:bg-surface-sunken"
               >
                 {it.label}
               </a>
             </li>
           ))}
-          <li className="xs:hidden">
-            <a
-              href={section(t.navCta.href)}
-              onClick={() => setOpen(false)}
-              className="flex items-center min-h-[44px] px-2 text-[16px] font-semibold text-link no-underline rounded-sm hover:bg-surface-sunken"
-            >
-              {t.navCta.label}
-            </a>
-          </li>
         </ul>
+        <div className="mx-auto max-w-content px-4 pb-4 pt-3 border-t border-line flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {toggle}
+            <span className="text-body-sm text-ink-muted">{locale === "id" ? t.switcher.labelId : t.switcher.labelEn}</span>
+          </div>
+          <Button href={section(t.navCta.href)} variant="primary" className="whitespace-nowrap" onClick={() => setOpen(false)}>
+            {t.navCta.label}
+          </Button>
+        </div>
       </nav>
     </header>
   );

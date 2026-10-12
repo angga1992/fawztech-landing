@@ -33,19 +33,23 @@ Seksi `#portofolio` SHALL merender kartu klien hanya untuk slug yang ada di `NEX
 - **THEN** tidak ada kecocokan
 
 ### Requirement: Header
-Header SHALL sticky di atas dengan latar `surface` dan garis bawah `line` 1px, berisi logo (tinggi 32–36px, tautan ke beranda locale aktif dengan anchor `#atas`), tautan "Layanan"/"Services" (`#layanan`), "Cara kerja"/"How we work" (`#cara-kerja`), "Portofolio"/"Portfolio" (`#portofolio`, hanya bila seksinya tayang), "Kontak"/"Contact" (`#kontak`), pengalih bahasa "ID | EN" (lihat spec `locale-routing`), serta tombol utama "Mulai konsultasi"/"Start a consultation" (`#kontak`). Teks diambil dari kamus locale aktif. Di viewport < 768px tautan masuk ke menu yang dibuka tombol dengan `aria-expanded`, sementara logo, pengalih bahasa, dan tombol utama tetap tampak.
+Header SHALL sticky di atas dengan latar `surface` dan garis bawah `line` 1px, berisi logo (tinggi 32px, tautan ke beranda locale aktif), tautan navigasi dari kamus, pengalih bahasa berupa toggle bendera (lihat spec `locale-routing`), dan tombol utama "Konsultasi Sekarang"/"Start a Consultation" ke seksi kontak. Teks diambil dari kamus locale aktif. Tata letak desktop (logo, tautan, tombol utama, toggle paling kanan) berlaku pada viewport ≥ 1024px. Di bawah 1024px baris header MUST hanya memuat logo, tombol utama satu baris (`white-space: nowrap`), dan tombol menu 44×44px yang tidak menyusut; tautan navigasi, toggle bendera beserta label bahasa, dan tombol utama MUST berada di panel menu yang dibuka tombol dengan `aria-expanded`/`aria-controls`, menutup saat tautan dipilih atau Escape. Di bawah 640px logo MUST berupa tanda F saja (`fawz-tech-mark.svg`) agar baris muat di 360px tanpa gulir horizontal.
 
 #### Scenario: Desktop
-- **WHEN** lebar viewport ≥ 768px
-- **THEN** logo, dua tautan, pengalih bahasa, dan tombol utama tampak dalam satu baris tanpa tombol menu
+- **WHEN** lebar viewport ≥ 1024px
+- **THEN** logo, tautan navigasi, tombol utama, dan toggle bendera tampak dalam satu baris tanpa tombol menu dan tanpa gulir horizontal
 
-#### Scenario: Mobile
-- **WHEN** lebar viewport < 768px dan tombol menu diaktifkan
-- **THEN** `aria-expanded` menjadi `true`, daftar tautan muncul, dan tautan dapat diaktifkan dengan keyboard; mengaktifkan tautan menutup menu
+#### Scenario: Mobile 360px
+- **WHEN** lebar viewport 360px
+- **THEN** baris header memuat tanda F, tombol utama satu baris, dan tombol menu 44×44px; `document.documentElement.scrollWidth` sama dengan lebar viewport
+
+#### Scenario: Menu mobile
+- **WHEN** lebar viewport < 1024px dan tombol menu diaktifkan
+- **THEN** `aria-expanded` menjadi `true`, panel menampilkan tautan navigasi (tinggi baris ≥ 44px), toggle bendera dengan label bahasa aktif, dan tombol utama; mengaktifkan tautan atau menekan Escape menutup panel
 
 #### Scenario: Header berbahasa Inggris
 - **WHEN** `/en` dirender
-- **THEN** tautan header berbunyi "Services", "How we work", tombol "Start a consultation", dan pengalih menandai "EN" sebagai `aria-current="true"`
+- **THEN** tautan header dan tombol utama memakai teks kamus Inggris, dan toggle menandai bendera Inggris sebagai aktif
 
 ### Requirement: Hero
 Hero SHALL berlatar `navy-900` dengan eyebrow "SOFTWARE HOUSE · APLIKASI CUSTOM" (amber), H1 "Sistem yang pas untuk bisnismu, dibangun bersama.", sub "Web, Mobile, Desktop, dan UI/UX yang dirancang dari cara kerja bisnismu, bukan template.", tombol amber "Ceritakan idemu" (`#kontak`), tombol ghost "Lihat cara kami bekerja" (`#cara-kerja`), ilustrasi `hero-dashboard.svg` dengan `app-mobile.svg` menumpuk di kanan bawah, dan baris `code` "Web · Mobile · Desktop · UI/UX". Desktop dua kolom (teks kiri, gambar kanan); mobile teks dulu lalu gambar lebar penuh.
