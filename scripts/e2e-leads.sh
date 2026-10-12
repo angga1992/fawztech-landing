@@ -52,7 +52,7 @@ check "internal API menolak tanpa token (401)" '[ "$(curl -s -o /dev/null -w %{h
 
 echo "== kirim prospek lewat landing"
 STORY="E2E $(date +%s): proses PO masih manual di spreadsheet."
-PAYLOAD='{"nama":"Budi E2E","kontak":"0812-3456-7890","bisnis":"PT Uji Coba","kebutuhan":["web","mobile"],"cerita":"'"$STORY"'","setuju":true,"website":"","turnstile_token":"","utm_source":"e2e","utm_medium":"script","utm_campaign":"compose","page_url":"http://localhost:3200/","referrer":"","locale":"id"}'
+PAYLOAD='{"nama":"Budi E2E","kontak":"0812-3456-7890","bisnis":"PT Uji Coba","kebutuhan":["web","mobile"],"cerita":"'"$STORY"'","setuju":true,"website":"","turnstile_token":"","recaptcha_token":"","utm_source":"e2e","utm_medium":"script","utm_campaign":"compose","page_url":"http://localhost:3200/","referrer":"","locale":"id"}'
 RES=$(curl -s -w '\n%{http_code}' -X POST -H "Content-Type: application/json" -d "$PAYLOAD" http://127.0.0.1:3200/api/leads)
 CODE=$(echo "$RES" | tail -1); BODY=$(echo "$RES" | head -1); ID=$(echo "$BODY" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
 echo "  landing → $CODE $BODY"

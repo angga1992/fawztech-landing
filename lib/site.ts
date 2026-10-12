@@ -49,6 +49,9 @@ export const site = {
   linkedin: env(process.env.NEXT_PUBLIC_LINKEDIN, PLACEHOLDER.linkedin),
   replyDays: env(process.env.NEXT_PUBLIC_REPLY_DAYS, PLACEHOLDER.replyDays),
   plausibleDomain: env(process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN, ""),
+  /** reCAPTCHA v3 (diutamakan bila diisi; token diverifikasi di sistem internal). */
+  recaptchaSiteKey: env(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, ""),
+  /** Cloudflare Turnstile (alternatif bila site key reCAPTCHA kosong; diverifikasi di landing). */
   turnstileSiteKey: env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY, ""),
   /** Klien portofolio yang boleh tayang (kosong = seksi portofolio dan tautan navnya disembunyikan). */
   portfolioClients: parsePortfolio(process.env.NEXT_PUBLIC_PORTFOLIO_CLIENTS ?? ""),

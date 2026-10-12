@@ -12,6 +12,7 @@ const valid = {
   setuju: true,
   website: "",
   turnstile_token: "",
+  recaptcha_token: "",
   utm_source: "instagram",
   utm_medium: "bio",
   utm_campaign: "launch",
@@ -184,6 +185,25 @@ describe("POST /api/leads", () => {
     vi.stubEnv("NODE_ENV", "development");
     const res = await POST(req(valid));
     expect(res.status).toBe(201);
+  });
+
+  it("meneruskan recaptcha_token apa adanya tanpa memverifikasinya di landing", async () => {
+    vi.stubEnv("LEADS_API_URL", "https://internal.example/api/public/leads");
+    fetchMock.mockResolvedValueOnce(upstream(201, { id: "hulu-2" }));
+    const res = await POST(req({ ...valid, recaptcha_token: "tok-v3" }));
+    expect(res.status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://internal.example/api/public/leads");
+    expect(JSON.parse(init.body).recaptcha_token).toBe("tok-v3");
+  });
+
+  it("captcha ditolak hulu: 422 pada field captcha diteruskan ke klien", async () => {
+    vi.stubEnv("LEADS_API_URL", "https://internal.example/api/public/leads");
+    fetchMock.mockResolvedValueOnce(upstream(422, { errors: { captcha: "Verifikasi gagal" } }));
+    const res = await POST(req({ ...valid, recaptcha_token: "tok-buruk" }));
+    expect(res.status).toBe(422);
+    expect((await res.json()).errors.captcha).toBe("Verifikasi gagal");
   });
 
   it("Turnstile gagal: 422 pada field turnstile", async () => {

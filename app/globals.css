@@ -70,6 +70,11 @@ svg {
   transform: none;
 }
 
+/* Badge reCAPTCHA disembunyikan; sebagai gantinya form menampilkan teks wajib Google (LeadForm). */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* Honeypot: di luar viewport, tidak bisa di-Tab. */
 .hp {
   position: absolute;

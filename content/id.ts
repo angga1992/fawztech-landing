@@ -244,6 +244,12 @@ export const id = {
       remaining: "Tersisa {n} karakter.",
       honeypotLabel: "Jangan diisi",
       openWhatsApp: "Buka WhatsApp",
+      /** Teks wajib Google saat badge reCAPTCHA disembunyikan. */
+      recaptchaBefore: "Situs ini dilindungi reCAPTCHA; ",
+      recaptchaPrivacy: "Kebijakan Privasi",
+      recaptchaMiddle: " dan ",
+      recaptchaTerms: "Persyaratan Layanan",
+      recaptchaAfter: " Google berlaku.",
     },
   },
   footer: {
@@ -331,7 +337,7 @@ export const id = {
           {
             ul: [
               "Penyedia layanan hosting yang mengoperasikan situs dan sistem internal kami;",
-              "Cloudflare Turnstile untuk perlindungan terhadap spam (jika diaktifkan);",
+              "Google reCAPTCHA atau Cloudflare Turnstile untuk perlindungan terhadap spam pada form (jika diaktifkan);",
               "Layanan analitik tanpa cookie untuk pengumpulan statistik kunjungan agregat (jika diaktifkan).",
             ],
           },

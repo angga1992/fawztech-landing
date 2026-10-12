@@ -243,6 +243,11 @@ export const en = {
       remaining: "{n} characters left.",
       honeypotLabel: "Leave this empty",
       openWhatsApp: "Open WhatsApp",
+      recaptchaBefore: "This site is protected by reCAPTCHA and the Google ",
+      recaptchaPrivacy: "Privacy Policy",
+      recaptchaMiddle: " and ",
+      recaptchaTerms: "Terms of Service",
+      recaptchaAfter: " apply.",
     },
   },
   footer: {
@@ -330,7 +335,7 @@ export const en = {
           {
             ul: [
               "The hosting provider that operates this site and our internal systems;",
-              "Cloudflare Turnstile for spam prevention on the form (if enabled);",
+              "Google reCAPTCHA or Cloudflare Turnstile for spam prevention on the form (if enabled);",
               "Cookie-free analytics tools for aggregate visit statistics (if enabled).",
             ],
           },

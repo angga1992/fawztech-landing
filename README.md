@@ -32,7 +32,7 @@ app/
 content/id.ts, en.ts  naskah per bahasa (id setara landing-copy.json)
 lib/i18n/             locale, resolver, routes, kamus, metadata, format tanggal
 lib/site.ts           konfigurasi situs dan placeholder kontak
-lib/leads/            validasi, normalisasi, pesan dua bahasa, rate limit, Turnstile, penerusan
+lib/leads/            validasi, normalisasi, pesan dua bahasa, rate limit, Turnstile (reCAPTCHA diverifikasi di internal), penerusan
 public/               logo (svg/), ilustrasi, favicon, og-image, brand/, portfolio/ (hanya tangkapan layar versi blurred)
 ```
 
@@ -45,7 +45,7 @@ scripts/e2e-leads.sh                # uji E2E lokal: build kedua stack, kirim pr
 scripts/deploy.sh                   # build image lokal, kirim ke VPS (ssh "fawztech"), docker compose up di ~/fawztech-landing
 ```
 
-`docker-compose.yml` hanya berisi service `landing` (terbuka di `127.0.0.1:3000`). Ia bergabung ke jaringan `fawz` yang dibuat stack internal agar prospek bisa diteruskan ke `http://internal:3100/api/public/leads`. Reverse proxy dan HTTPS ditangani nginx + certbot di host: `deploy/nginx/fawztech.id.conf` dipasang `scripts/deploy.sh`, lalu `certbot --nginx --redirect` menambahkan HTTPS untuk `fawztech.id` dan `www`. Jalankan stack internal lebih dulu. `NEXT_PUBLIC_*` dan `SITE_URL` dibakar saat build (halaman statis), jadi mengubahnya berarti build dan deploy ulang. Turnstile diverifikasi di landing saja; token Turnstile sekali pakai, sehingga stack internal tidak memverifikasinya lagi.
+`docker-compose.yml` hanya berisi service `landing` (terbuka di `127.0.0.1:3000`). Ia bergabung ke jaringan `fawz` yang dibuat stack internal agar prospek bisa diteruskan ke `http://internal:3100/api/public/leads`. Reverse proxy dan HTTPS ditangani nginx + certbot di host: `deploy/nginx/fawztech.id.conf` dipasang `scripts/deploy.sh`, lalu `certbot --nginx --redirect` menambahkan HTTPS untuk `fawztech.id` dan `www`. Jalankan stack internal lebih dulu. `NEXT_PUBLIC_*` dan `SITE_URL` dibakar saat build (halaman statis), jadi mengubahnya berarti build dan deploy ulang. Captcha: reCAPTCHA v3 (`NEXT_PUBLIC_RECAPTCHA_SITE_KEY`) menghasilkan `recaptcha_token` yang diteruskan dan diverifikasi hanya di stack internal; Turnstile (alternatif) diverifikasi di landing saja. Keduanya token sekali pakai, jadi hanya satu pihak yang memverifikasi.
 
 ## Variabel lingkungan
 
@@ -60,7 +60,8 @@ Lihat `.env.example`. Ringkasnya:
 | `NEXT_PUBLIC_REPLY_DAYS` | Angka hari kerja pada pesan sukses form |
 | `NEXT_PUBLIC_PORTFOLIO_CLIENTS` | Slug klien yang sudah mengizinkan tayang (`arfindo-bersinar,menya-sakura,museum-nasional,kkara` atau `all`). Kosong = seksi Portofolio dan tautan navnya disembunyikan |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analitik tanpa cookie (opsional) |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile (opsional; dilewati bila kosong) |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 (diutamakan). Token dikirim sebagai `recaptcha_token` dan diverifikasi **hanya di sistem internal** (`RECAPTCHA_SECRET_KEY` di sana) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile (alternatif bila reCAPTCHA kosong; dilewati bila kosong) |
 | `LEADS_API_URL`, `LEADS_API_TOKEN` | Endpoint `POST /api/public/leads` sistem internal Fawz Tech |
 | `LEADS_WEBHOOK_URL` | Webhook cadangan (n8n, Make, Apps Script) bila sistem internal belum ada |
 | `LEADS_ALLOWED_ORIGIN` | Origin lain yang boleh memanggil `/api/leads` (opsional) |
@@ -90,7 +91,7 @@ Batasan Next 14: karena root layout berada di `app/[locale]/`, respons 404 berst
 
 ## Alur prospek
 
-Form "Ceritakan idemu" → `POST /api/leads` (same-origin) → validasi sesuai `internal-app.md` (kontak dinormalkan ke `62…`, cerita ≤ 1.000 karakter, `kebutuhan` dari daftar tetap, `setuju` wajib) → honeypot, rate limit 5/menit dan 20/jam per IP, Turnstile opsional, idempotensi 10 menit → diteruskan ke `LEADS_API_URL`, atau `LEADS_WEBHOOK_URL`, atau dicatat ke konsol (hanya development). Di produksi tanpa tujuan, API membalas 503.
+Form "Ceritakan idemu" → `POST /api/leads` (same-origin) → validasi sesuai `internal-app.md` (kontak dinormalkan ke `62…`, cerita ≤ 1.000 karakter, `kebutuhan` dari daftar tetap, `setuju` wajib) → honeypot, rate limit 5/menit dan 20/jam per IP, Turnstile opsional (token reCAPTCHA hanya diteruskan), idempotensi 10 menit → diteruskan ke `LEADS_API_URL`, atau `LEADS_WEBHOOK_URL`, atau dicatat ke konsol (hanya development). Di produksi tanpa tujuan, API membalas 503.
 
 Rate limit disimpan di memori proses. Untuk deploy multi-instance, ganti implementasi `RateLimiter` di `lib/leads/rate-limit.ts` dengan penyimpanan bersama.
 

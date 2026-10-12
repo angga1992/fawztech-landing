@@ -126,7 +126,8 @@ export async function POST(req: Request) {
   }
   const payload = { ...result.data, privacy_version: PRIVACY_POLICY_VERSION };
 
-  // 5. Turnstile (dilewati bila secret kosong).
+  // 5. Turnstile (dilewati bila secret kosong). Token reCAPTCHA v3 TIDAK diverifikasi di sini: sekali pakai,
+  //    sistem internal yang memverifikasinya (payload.recaptcha_token diteruskan apa adanya).
   const human = await verifyTurnstile(payload.turnstile_token, ip);
   if (!human) {
     log({ event: "turnstile_failed" });
