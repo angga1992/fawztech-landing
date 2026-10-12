@@ -30,7 +30,7 @@ ssh "$HOST" "cd $DIR && sg docker -c 'docker compose up -d --remove-orphans --wa
 echo "== 4/4 nginx + sertifikat ($HOSTS)"
 scp -q deploy/nginx/fawztech.id.conf "$HOST:$DIR/nginx.conf"
 ssh "$HOST" "set -e; sudo install -m 644 $DIR/nginx.conf /etc/nginx/sites-available/$PRIMARY && sudo ln -sf /etc/nginx/sites-available/$PRIMARY /etc/nginx/sites-enabled/$PRIMARY && sudo nginx -t -q && sudo systemctl reload-or-restart nginx
-  if sudo test -d /etc/letsencrypt/live/$PRIMARY; then echo 'sertifikat sudah ada'; else
-    sudo certbot --nginx -n --agree-tos -m '$ACME_EMAIL' --redirect $DFLAGS || echo 'PERINGATAN: certbot gagal (periksa DNS); nginx tetap melayani HTTP. Ulangi: SKIP_BUILD=1 scripts/deploy.sh'
-  fi"
+  # Konfigurasi dari repo hanya berisi blok HTTP; certbot selalu dijalankan agar blok HTTPS + redirect dipasang lagi.
+  # --keep-until-expiring memakai ulang sertifikat yang masih berlaku (tanpa permintaan baru ke Let's Encrypt).
+  sudo certbot --nginx -n --agree-tos -m '$ACME_EMAIL' --redirect --keep-until-expiring $DFLAGS || echo 'PERINGATAN: certbot gagal (periksa DNS); nginx tetap melayani HTTP. Ulangi: SKIP_BUILD=1 scripts/deploy.sh'"
 ssh "$HOST" "cd $DIR && sg docker -c 'docker compose ps'"
