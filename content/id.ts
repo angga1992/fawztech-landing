@@ -130,7 +130,6 @@ export const id = {
       { big: "2022", label: "tahun kami memulai" },
       { big: "Fawz", label: "kemenangan, keberhasilan" },
     ],
-    nameNote: "Fawz (\u0641\u0648\u0632) berarti kemenangan atau keberhasilan.",
   },
   vision: {
     eyebrow: "Visi",
@@ -213,8 +212,10 @@ export const id = {
     eyebrow: "Hubungi Kami",
     h2: "Mari Diskusikan Visi Anda.",
     sub: "Sampaikan kebutuhan Anda melalui pesan singkat, dan mari kita mulai dengan sesi diskusi strategis.",
+    /** Label tombol WhatsApp melayang (pojok kanan bawah). */
+    whatsappFloatLabel: "Chat lewat WhatsApp",
     whatsappLabel: "Hubungi melalui WhatsApp",
-    whatsappPrefill: "Halo Fawz Tech, saya ingin berdiskusi mengenai pengembangan aplikasi untuk bisnis saya.",
+    whatsappPrefill: "Halo Fawz Tech, saya ingin berdiskusi tentang aplikasi untuk bisnis saya.",
     form: {
       submit: "Kirim Permintaan",
       submitting: "Mengirim…",

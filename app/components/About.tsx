@@ -30,7 +30,6 @@ export default function About({ t }: { t: Dictionary }) {
                 <p className="text-body-sm font-medium">{name.label}</p>
               </div>
             </div>
-            <p className="mt-2 font-mono text-code text-ink-muted">{a.nameNote}</p>
           </div>
         </Reveal>
       </div>

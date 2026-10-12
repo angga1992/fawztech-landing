@@ -3,6 +3,7 @@ import About from "../components/About";
 import Catalogue from "../components/Catalogue";
 import Contact from "../components/Contact";
 import Engage from "../components/Engage";
+import FloatingWa from "../components/FloatingWa";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Hero from "../components/Hero";
@@ -16,6 +17,8 @@ import Vision from "../components/Vision";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary, headerDictionary } from "@/lib/i18n/dictionary";
 import { pageMetadata } from "@/lib/i18n/metadata";
+import { site } from "@/lib/site";
+import { buildWaLink } from "@/lib/wa";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   return isLocale(params.locale) ? pageMetadata(params.locale, "home") : {};
@@ -26,6 +29,8 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
 export default function Page({ params }: { params: { locale: string } }) {
   const locale = (isLocale(params.locale) ? params.locale : "id") as Locale;
   const t = getDictionary(locale);
+  // Nomor dan pesan awal sesuai brief §3 (Ajakan dan form); tombol tidak dirender bila nomor belum dikonfigurasi.
+  const wa = buildWaLink(site.waNumber, t.contact.whatsappPrefill);
   return (
     <>
       <Header t={headerDictionary(t)} locale={locale} routeKey="home" />
@@ -45,6 +50,7 @@ export default function Page({ params }: { params: { locale: string } }) {
         <Contact t={t} locale={locale} />
       </main>
       <Footer t={t} locale={locale} />
+      {wa ? <FloatingWa href={wa} label={t.contact.whatsappFloatLabel} /> : null}
     </>
   );
 }

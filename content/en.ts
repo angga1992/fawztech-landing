@@ -130,7 +130,6 @@ export const en = {
       { big: "2022", label: "the year we started" },
       { big: "Fawz", label: "victory, success" },
     ],
-    nameNote: "Fawz (\u0641\u0648\u0632) means victory or success.",
   },
   vision: {
     eyebrow: "Vision",
@@ -212,6 +211,8 @@ export const en = {
     eyebrow: "Get in Touch",
     h2: "Let's Discuss Your Vision.",
     sub: "Share your requirements through a message, and let's begin with a strategic discussion session.",
+    /** Label tombol WhatsApp melayang (pojok kanan bawah). */
+    whatsappFloatLabel: "Chat on WhatsApp",
     whatsappLabel: "Chat on WhatsApp",
     whatsappPrefill: "Hello Fawz Tech, I'd like to discuss developing an application for my business.",
     form: {
