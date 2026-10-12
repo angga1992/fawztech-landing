@@ -1,0 +1,86 @@
+name: Deploy landing ke VPS
+
+# Setiap push ke main: lint + uji, build image Docker, kirim ke VPS lewat SSH, docker compose up, nginx + certbot
+# (memakai scripts/deploy.sh yang sama dengan deploy manual). Bisa juga dijalankan manual dari tab Actions.
+#
+# Secrets yang wajib diisi di Settings → Secrets and variables → Actions:
+#   DEPLOY_HOST     IP atau hostname VPS, mis. 103.93.163.180
+#   DEPLOY_USER     user SSH di VPS, mis. fawztech
+#   DEPLOY_SSH_KEY  isi lengkap kunci privat (FawzTech.pem), termasuk baris BEGIN/END
+#   ENV_DEPLOY      isi lengkap berkas .env.deploy (lihat .env.docker.example)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-landing
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Lint dan uji
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      - name: Siapkan .env.deploy dari secret
+        env:
+          ENV_DEPLOY: ${{ secrets.ENV_DEPLOY }}
+        run: |
+          if [ -z "$ENV_DEPLOY" ]; then echo "Secret ENV_DEPLOY belum diisi."; exit 1; fi
+          printf '%s\n' "$ENV_DEPLOY" > .env.deploy
+          chmod 600 .env.deploy
+          grep -q '^LEADS_API_TOKEN=.' .env.deploy || { echo "ENV_DEPLOY harus memuat LEADS_API_TOKEN."; exit 1; }
+
+      - name: Siapkan SSH ke VPS
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
+            [ -n "${!v}" ] || { echo "Secret $v belum diisi."; exit 1; }
+          done
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/fawztech.pem
+          chmod 600 ~/.ssh/fawztech.pem
+          ssh-keyscan -p 22 -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          cat >> ~/.ssh/config <<CFG
+          Host fawztech
+              HostName $DEPLOY_HOST
+              User $DEPLOY_USER
+              IdentityFile ~/.ssh/fawztech.pem
+              IdentitiesOnly yes
+              ServerAliveInterval 30
+          CFG
+          chmod 600 ~/.ssh/config
+          ssh -o BatchMode=yes -o ConnectTimeout=20 fawztech 'echo "SSH ok: $(whoami)@$(hostname)"'
+
+      - name: Build, kirim, dan jalankan di VPS
+        run: |
+          chmod +x scripts/deploy.sh
+          scripts/deploy.sh fawztech
+
+      - name: Smoke test
+        run: |
+          HOST=$(grep -E '^LANDING_HOSTS=' .env.deploy | cut -d= -f2- | tr -d '"' | awk '{print $1}')
+          HOST=${HOST:-fawztech.id}
+          for i in 1 2 3 4 5 6; do
+            if curl -sSf -o /dev/null -m 20 "https://$HOST/"; then echo "https://$HOST/ OK"; exit 0; fi
+            sleep 10
+          done
+          echo "Situs belum merespons lewat HTTPS; periksa DNS/certbot."; exit 1

@@ -47,6 +47,21 @@ scripts/deploy.sh                   # build image lokal, kirim ke VPS (ssh "fawz
 
 `docker-compose.yml` hanya berisi service `landing` (terbuka di `127.0.0.1:3000`). Ia bergabung ke jaringan `fawz` yang dibuat stack internal agar prospek bisa diteruskan ke `http://internal:3100/api/public/leads`. Reverse proxy dan HTTPS ditangani nginx + certbot di host: `deploy/nginx/fawztech.id.conf` dipasang `scripts/deploy.sh`, lalu `certbot --nginx --redirect` menambahkan HTTPS untuk `fawztech.id` dan `www`. Jalankan stack internal lebih dulu. `NEXT_PUBLIC_*` dan `SITE_URL` dibakar saat build (halaman statis), jadi mengubahnya berarti build dan deploy ulang. Captcha: reCAPTCHA v3 (`NEXT_PUBLIC_RECAPTCHA_SITE_KEY`) menghasilkan `recaptcha_token` yang diteruskan dan diverifikasi hanya di stack internal; Turnstile (alternatif) diverifikasi di landing saja. Keduanya token sekali pakai, jadi hanya satu pihak yang memverifikasi.
 
+### Deploy otomatis (GitHub Actions)
+
+Workflow `.github/workflows/deploy.yml` berjalan pada setiap push ke `main` (atau manual dari tab Actions): lint + uji, build image Docker, kirim ke VPS lewat SSH, `docker compose up`, nginx + certbot, lalu smoke test HTTPS. Isinya memanggil `scripts/deploy.sh` yang sama dengan deploy manual, sehingga hasilnya identik.
+
+Secrets yang harus diisi di **Settings → Secrets and variables → Actions** (sekali):
+
+| Secret | Isi |
+| --- | --- |
+| `DEPLOY_HOST` | IP atau hostname VPS |
+| `DEPLOY_USER` | user SSH di VPS (anggota grup `docker`, bisa `sudo` tanpa sandi untuk nginx dan certbot) |
+| `DEPLOY_SSH_KEY` | isi lengkap kunci privat SSH (file `.pem`), termasuk baris `BEGIN`/`END` |
+| `ENV_DEPLOY` | isi lengkap `.env.deploy` (salin dari `.env.docker.example`, isi `LEADS_API_TOKEN` dan `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`) |
+
+Tanpa secret, workflow berhenti di langkah pertama dengan pesan secret mana yang kosong. Mengubah nilai `NEXT_PUBLIC_*`/`SITE_URL` berarti memperbarui `ENV_DEPLOY` lalu menjalankan workflow lagi (nilai dibakar saat build).
+
 ## Variabel lingkungan
 
 Lihat `.env.example`. Ringkasnya:
