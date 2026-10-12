@@ -2,16 +2,27 @@
 
 ## Purpose
 
-Struktur, isi, dan perilaku tiap seksi landing page Fawz Tech (header, hero, masalah, layanan, cara kerja, kontak, footer) sesuai LANDING-BRIEF; seksi portofolio disembunyikan sampai ada data klien nyata.
+Struktur, isi, dan perilaku tiap seksi landing page Fawz Tech sesuai LANDING-BRIEF (pembaruan Oktober 2026): header, hero, siapa kami, masalah, visi, misi, nilai, layanan, cara kerja, katalog, portofolio + studi kasus (bergerbang izin klien), cara bekerja sama, kontak, footer. Testimoni dan Tim tidak ada.
 
 ## Requirements
 
 ### Requirement: Struktur halaman
-Landing page SHALL berupa satu halaman `/` dengan urutan seksi: header sticky, Hero (`#atas`), Masalah (`#masalah`), Layanan (`#layanan`), Cara kerja (`#cara-kerja`), Ajakan dan form (`#kontak`), footer. Halaman MUST memakai landmark `header`, `main`, `footer`, tautan lompat "Lewati ke konten" sebagai elemen fokus pertama, tepat satu `<h1>`, dan `<h2>` per seksi. Seksi portofolio dan testimoni (`#cerita`) MUST NOT dirender.
+Landing page SHALL berupa satu halaman `/` dengan urutan seksi: header sticky, Hero (`#atas`), Siapa kami (`#tentang`), Masalah (`#masalah`), Visi (`#visi`), Misi (`#misi`), Nilai (`#nilai`), Layanan (`#layanan`), Cara kerja (`#cara-kerja`), Katalog (`#katalog`), Portofolio (`#portofolio`, hanya bila ada klien yang diizinkan), Cara bekerja sama (`#kerja-sama`), Ajakan dan form (`#kontak`), footer. Halaman MUST memakai landmark `header`, `main`, `footer`, tautan lompat "Lewati ke konten" sebagai elemen fokus pertama, tepat satu `<h1>`, dan `<h2>` per seksi. Seksi testimoni dan tim MUST NOT dirender.
 
 #### Scenario: Urutan dan landmark
 - **WHEN** DOM halaman `/` diperiksa
-- **THEN** elemen `header`, `main#utama`, dan `footer` ada; `main` memuat seksi dengan id `atas`, `masalah`, `layanan`, `cara-kerja`, `kontak` dalam urutan itu; tidak ada elemen dengan id `cerita`
+- **THEN** elemen `header`, `main#utama`, dan `footer` ada; `main` memuat seksi dengan id `atas`, `tentang`, `masalah`, `visi`, `misi`, `nilai`, `layanan`, `cara-kerja`, `katalog`, (`portofolio`), `kerja-sama`, `kontak` dalam urutan itu; tidak ada seksi testimoni atau tim
+
+### Requirement: Portofolio bergerbang izin klien
+Seksi `#portofolio` SHALL merender kartu klien hanya untuk slug yang ada di `NEXT_PUBLIC_PORTFOLIO_CLIENTS` (`arfindo-bersinar`, `menya-sakura`, `museum-nasional`, `kkara`, atau `all`). Bila tidak ada slug yang diizinkan, seksi dan tautan nav "Portofolio" MUST NOT dirender. Studi kasus Arfindo (gambar `portfolio/arfindo-qms-dashboard-blurred.jpg` dengan `alt` deskriptif, `width`/`height`, dimuat lazy; tiga blok Tantangan, Yang kami bangun, Hasil tanpa angka) tayang hanya bila `arfindo-bersinar` diizinkan. Berkas `-original` MUST NOT ada di `public/`.
+
+#### Scenario: Tanpa izin
+- **WHEN** `NEXT_PUBLIC_PORTFOLIO_CLIENTS` kosong
+- **THEN** tidak ada elemen `#portofolio` dan tidak ada tautan nav ke `#portofolio`
+
+#### Scenario: Sebagian izin
+- **WHEN** `NEXT_PUBLIC_PORTFOLIO_CLIENTS=menya-sakura,kkara`
+- **THEN** hanya dua kartu itu tampil dan blok studi kasus Arfindo tidak dirender
 
 #### Scenario: Tautan lompat
 - **WHEN** pengguna menekan Tab pertama kali di halaman
@@ -22,7 +33,7 @@ Landing page SHALL berupa satu halaman `/` dengan urutan seksi: header sticky, H
 - **THEN** tidak ada kecocokan
 
 ### Requirement: Header
-Header SHALL sticky di atas dengan latar `surface` dan garis bawah `line` 1px, berisi logo (tinggi 32–36px, tautan ke beranda locale aktif dengan anchor `#atas`), tautan "Layanan"/"Services" (`#layanan`) dan "Cara kerja"/"How we work" (`#cara-kerja`), pengalih bahasa "ID | EN" (lihat spec `locale-routing`), serta tombol utama "Mulai konsultasi"/"Start a consultation" (`#kontak`). Teks diambil dari kamus locale aktif. Di viewport < 768px tautan masuk ke menu yang dibuka tombol dengan `aria-expanded`, sementara logo, pengalih bahasa, dan tombol utama tetap tampak.
+Header SHALL sticky di atas dengan latar `surface` dan garis bawah `line` 1px, berisi logo (tinggi 32–36px, tautan ke beranda locale aktif dengan anchor `#atas`), tautan "Layanan"/"Services" (`#layanan`), "Cara kerja"/"How we work" (`#cara-kerja`), "Portofolio"/"Portfolio" (`#portofolio`, hanya bila seksinya tayang), "Kontak"/"Contact" (`#kontak`), pengalih bahasa "ID | EN" (lihat spec `locale-routing`), serta tombol utama "Mulai konsultasi"/"Start a consultation" (`#kontak`). Teks diambil dari kamus locale aktif. Di viewport < 768px tautan masuk ke menu yang dibuka tombol dengan `aria-expanded`, sementara logo, pengalih bahasa, dan tombol utama tetap tampak.
 
 #### Scenario: Desktop
 - **WHEN** lebar viewport ≥ 768px
@@ -55,7 +66,7 @@ Seksi SHALL menampilkan eyebrow "MASALAH YANG KAMI LIHAT", H2 "Prosesnya unik. S
 - **THEN** ada tepat tiga poin berjudul "Prosesmu mengikuti aplikasi", "Tidak ada developer yang paham bisnismu", "Data tercecer di spreadsheet dan chat", masing-masing dengan `border-left` 8px berwarna `navy-700`, `teal-600`, `amber-500` secara berurutan
 
 ### Requirement: Seksi Layanan
-Seksi SHALL berlatar `surface-sunken` dengan eyebrow "LAYANAN", H2 "Apa yang kami bangun", dan empat blok berurutan tetap Web, Mobile, Desktop, UI/UX dengan warna: Web `navy-700` teks putih, Mobile `amber-500` teks `navy-900`, Desktop `teal-600` teks putih, UI/UX putih bergaris `line` teks `ink`. Di ≥ 768px blok disusun bento 12 kolom (7/5 lalu 5/7); di mobile satu kolom. Setiap blok memuat ilustrasi sesuai naskah dengan `alt=""`.
+Seksi SHALL berlatar `surface` (Cara kerja yang berlatar `surface-sunken`) dengan eyebrow "LAYANAN", H2 "Apa yang kami bangun", dan empat blok berurutan tetap Web, Mobile, Desktop, UI/UX dengan warna: Web `navy-700` teks putih, Mobile `amber-500` teks `navy-900`, Desktop `teal-600` teks putih, UI/UX putih bergaris `line` teks `ink`. Di ≥ 768px blok disusun bento 12 kolom (7/5 lalu 5/7); di mobile satu kolom. Setiap blok memuat ilustrasi sesuai naskah dengan `alt=""`.
 
 #### Scenario: Lebar blok tidak seragam
 - **WHEN** seksi `#layanan` dirender pada lebar 1280px

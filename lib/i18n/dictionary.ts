@@ -1,5 +1,6 @@
 import { en } from "@/content/en";
 import { id, type Dictionary } from "@/content/id";
+import { portfolioVisible } from "@/lib/site";
 import type { Locale } from "./config";
 
 export type { Dictionary };
@@ -18,5 +19,7 @@ export function fill(template: string, values: Record<string, string | number>):
 /** Irisan kamus untuk Header (client component): hindari mengirim seluruh naskah ke payload RSC. */
 export type HeaderDictionary = Pick<Dictionary, "header" | "switcher" | "nav" | "navCta">;
 export function headerDictionary(t: Dictionary): HeaderDictionary {
-  return { header: t.header, switcher: t.switcher, nav: t.nav, navCta: t.navCta };
+  // Tautan Portofolio ikut hilang bila belum ada klien yang mengizinkan (lihat lib/site.ts).
+  const nav = portfolioVisible() ? t.nav : t.nav.filter((it) => it.href !== "#portofolio");
+  return { header: t.header, switcher: t.switcher, nav, navCta: t.navCta };
 }

@@ -9,7 +9,7 @@ const lift = ["", "lg:mb-10", "lg:mb-20", "lg:mb-[120px]"];
 export default function Process({ t }: { t: Dictionary }) {
   const p = t.process;
   return (
-    <section id="cara-kerja" className="py-12 lg:py-16">
+    <section id="cara-kerja" className="bg-surface-sunken py-12 lg:py-16">
       <div className="mx-auto max-w-content px-4 md:px-8">
         <Eyebrow>{p.eyebrow}</Eyebrow>
         <h2 className="mt-2 text-display-lg-sm sm:text-display-lg">{p.h2}</h2>

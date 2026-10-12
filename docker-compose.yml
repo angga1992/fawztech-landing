@@ -1,0 +1,39 @@
+# Landing page Fawz Tech. Bergabung ke jaringan "fawz" milik stack internal (repo fawz-internal) supaya
+# prospek bisa diteruskan ke http://internal:3100. Reverse proxy dan HTTPS oleh nginx + certbot di host
+# (deploy/nginx/, dipasang scripts/deploy.sh); aplikasi hanya terbuka di 127.0.0.1:3000.
+# Buat jaringan sekali: docker network create fawz. Jalankan stack internal lebih dulu.
+name: fawz-landing
+
+services:
+  landing:
+    image: fawz-landing:${TAG:-latest}
+    build:
+      context: .
+      # NEXT_PUBLIC_* dan SITE_URL dibakar saat build (halaman statis); ubah = build + deploy ulang.
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+        NEXT_PUBLIC_CONTACT_PHONE: ${NEXT_PUBLIC_CONTACT_PHONE:-}
+        NEXT_PUBLIC_WA_NUMBER: ${NEXT_PUBLIC_WA_NUMBER:-}
+        NEXT_PUBLIC_INSTAGRAM: ${NEXT_PUBLIC_INSTAGRAM:-}
+        NEXT_PUBLIC_LINKEDIN: ${NEXT_PUBLIC_LINKEDIN:-}
+        NEXT_PUBLIC_REPLY_DAYS: ${NEXT_PUBLIC_REPLY_DAYS:-}
+        NEXT_PUBLIC_PORTFOLIO_CLIENTS: ${NEXT_PUBLIC_PORTFOLIO_CLIENTS:-}
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      LEADS_API_URL: ${LEADS_API_URL:-http://internal:3100/api/public/leads}
+      # Harus sama dengan LEADS_API_TOKEN di stack internal.
+      LEADS_API_TOKEN: ${LEADS_API_TOKEN:?isi LEADS_API_TOKEN di .env}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      GEO_COUNTRY_HEADER: ${GEO_COUNTRY_HEADER:-}
+    ports:
+      - "127.0.0.1:${LANDING_PORT:-3000}:3000"
+
+networks:
+  default:
+    name: fawz
+    external: true

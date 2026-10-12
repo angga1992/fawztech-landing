@@ -28,6 +28,9 @@ export const id = {
   nav: [
     { label: "Layanan", href: "#layanan" },
     { label: "Cara Kerja", href: "#cara-kerja" },
+    // Tautan #portofolio otomatis disembunyikan bila belum ada klien yang mengizinkan (lib/site.ts).
+    { label: "Portofolio", href: "#portofolio" },
+    { label: "Kontak", href: "#kontak" },
   ],
   navCta: { label: "Konsultasi Sekarang", href: "#kontak" },
   hero: {
@@ -114,6 +117,96 @@ export const id = {
         text: "Rilis sistem yang terencana, pelatihan tim, serta dukungan berkelanjutan pasca-implementasi.",
         image: "/illustrations/process-4-launch.svg",
       },
+    ],
+  },
+  about: {
+    eyebrow: "Siapa Kami",
+    h2: "Fawz Tech Berdiri Sejak 2022.",
+    text: "Kami melihat aplikasi yang tersedia di pasaran sering kali tidak benar-benar memahami bisnis Anda. Kami percaya setiap bisnis berhak mendapatkan perlakuan yang khusus.",
+    /** Slogan pendiri; di deck tertulis "Bisnis Anda, Cara Anda". */
+    slogan: "Bisnis Anda, Cara Anda.",
+    image: "/illustrations/team-meeting.svg",
+    stats: [
+      { big: "2022", label: "tahun kami memulai" },
+      { big: "Fawz", label: "kemenangan, keberhasilan" },
+    ],
+    nameNote: "Fawz (\u0641\u0648\u0632) berarti kemenangan atau keberhasilan.",
+  },
+  vision: {
+    eyebrow: "Visi",
+    h2: "Setiap Bisnis Memiliki Sistem yang Benar-Benar Sesuai dengan Cara Kerjanya.",
+    text: "Kami ingin menjadi mitra teknologi yang pertama dipanggil saat bisnis membutuhkan sistem baru.",
+  },
+  mission: {
+    eyebrow: "Misi",
+    h2: "Empat Janji Kami.",
+    items: [
+      { n: "01", title: "Mendengarkan Terlebih Dahulu", text: "Memahami proses Anda sebelum menulis kode.", image: "/illustrations/mission-1-listen.svg" },
+      { n: "02", title: "Membangun Bersama", text: "Anda ikut merancang dan melihat demo secara rutin.", image: "/illustrations/mission-2-together.svg" },
+      { n: "03", title: "Membuat yang Benar-Benar Dipakai", text: "Sederhana, cepat, dan digunakan setiap hari.", image: "/illustrations/mission-3-used.svg" },
+      { n: "04", title: "Merawat Setelah Rilis", text: "Pelatihan dan dukungan berkelanjutan.", image: "/illustrations/mission-4-care.svg" },
+    ],
+  },
+  values: {
+    eyebrow: "Nilai Kami",
+    h2: "Lima Nilai Kami.",
+    items: [
+      { title: "Bersama", text: "Klien ikut merancang." },
+      { title: "Pas", text: "Mengikuti proses Anda." },
+      { title: "Jelas", text: "Harga dan jadwal terbuka." },
+      { title: "Tuntas", text: "Tetap hadir setelah peluncuran." },
+      { title: "Jujur", text: "Berani mengatakan tidak perlu." },
+    ],
+  },
+  catalogue: {
+    eyebrow: "Katalog",
+    h2: "Titik Awal yang Dapat Anda Pilih.",
+    sub: "Setiap modul disesuaikan dengan proses bisnis Anda.",
+    items: [
+      { name: "Finance Accounting", text: "Pembukuan dan laporan keuangan." },
+      { name: "Preventive & Corrective Maintenance", text: "Jadwal perawatan dan tiket perbaikan." },
+      { name: "Security Web & Mobile Apps", text: "Pengamanan aplikasi web dan mobile." },
+      { name: "E-commerce", text: "Toko online dengan pembayaran." },
+      { name: "Smart Building & Smart Housing System", text: "Kontrol dan monitoring gedung dan hunian." },
+      { name: "School & University System", text: "Akademik, siswa, dan administrasi." },
+      { name: "Sistem Kasir dan Stok", text: "Dapat berjalan offline." },
+      { name: "Absensi dan HR", text: "Pengajuan cuti tanpa kertas." },
+    ],
+  },
+  // Tayang hanya untuk klien yang slug-nya ada di NEXT_PUBLIC_PORTFOLIO_CLIENTS (izin klien). Tanpa angka hasil.
+  portfolio: {
+    eyebrow: "Portofolio",
+    h2: "Sebagian Pekerjaan Kami.",
+    items: [
+      { slug: "arfindo-bersinar", client: "Arfindo Bersinar", title: "Quality Management System", type: "Web \u00b7 Mobile" },
+      { slug: "menya-sakura", client: "Menya Sakura", title: "Aplikasi Loyalty Customer", type: "Mobile" },
+      { slug: "museum-nasional", client: "Museum Nasional Indonesia", title: "Aplikasi Showcase Artefak", type: "Desktop" },
+      { slug: "kkara", client: "KKARA", title: "Aplikasi Manajemen Koperasi", type: "Web" },
+    ],
+    caseStudy: {
+      slug: "arfindo-bersinar",
+      eyebrow: "Studi Kasus",
+      title: "Arfindo Bersinar: Quality Management System",
+      image: "/portfolio/arfindo-qms-dashboard-blurred.jpg",
+      imageAlt: "Tampilan dashboard Arfindo QMS: menu operasional, ringkasan PO, dan daftar pekerjaan",
+      caption: "Dashboard Arfindo QMS",
+      blocks: [
+        { label: "Tantangan", text: "Alur bisnis berjalan sepenuhnya manual. Dibutuhkan sistem yang membuat setiap proses terkontrol." },
+        {
+          label: "Yang Kami Bangun",
+          text: "Sistem manajemen mutu: daftar PO (barang, service, kalibrasi), pekerjaan per orang, daftar masalah, tiket komplain, data master, dan hak akses per peran.",
+        },
+        { label: "Hasil", text: "Proses yang dahulu manual kini berjalan dalam satu sistem: tercatat, memiliki penanggung jawab, dan terpantau melalui dashboard." },
+      ],
+    },
+  },
+  engage: {
+    eyebrow: "Cara Bekerja Sama",
+    h2: "Tiga Cara Memulai.",
+    items: [
+      { n: "A", title: "Proyek Terdefinisi", text: "Harga dan jadwal ditetapkan setelah discovery.", image: "/illustrations/engage-1-project.svg" },
+      { n: "B", title: "Tim Bulanan", text: "Kapasitas per bulan dengan prioritas yang disepakati bersama.", image: "/illustrations/engage-2-monthly-team.svg" },
+      { n: "C", title: "Perawatan", text: "Perbaikan dan pembaruan untuk sistem yang sudah berjalan.", image: "/illustrations/engage-3-support.svg" },
     ],
   },
   contact: {

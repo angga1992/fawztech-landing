@@ -58,7 +58,7 @@ describe("kamus id dan en", () => {
   });
 
   it("getDictionary dan fill", () => {
-    expect(getDictionary("en").meta.title).toBe("Fawz Tech | Custom Software House");
+    expect(getDictionary("en").meta.title).toBe("Fawz Tech | Bespoke Software Solutions & Digital Strategy");
     expect(getDictionary("id").meta.ogLocale).toBe("id_ID");
     expect(fill("Sisa {n} karakter.", { n: 5 })).toBe("Sisa 5 karakter.");
     expect(fill("{a} {b}", { a: "x" })).toBe("x {b}");

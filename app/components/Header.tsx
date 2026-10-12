@@ -5,6 +5,7 @@ import type { Locale } from "@/lib/i18n/config";
 import type { HeaderDictionary } from "@/lib/i18n/dictionary";
 import { pathFor, type RouteKey } from "@/lib/i18n/routes";
 import { fill } from "@/lib/i18n/dictionary";
+import { SECTION_PARAM } from "./ui/AnchorScroll";
 import Button from "./ui/Button";
 import Flag from "./ui/Flag";
 import Logo from "./ui/Logo";
@@ -21,6 +22,10 @@ export default function Header({ t, locale, routeKey }: Props) {
   const other: Locale = locale === "id" ? "en" : "id";
   // Pengalih bahasa: tautan biasa (bekerja tanpa JavaScript); middleware memasang cookie dari ?lang=.
   const switchHref = `${pathFor(other, routeKey)}?lang=${other}`;
+  // Tautan ke seksi: di beranda berupa anchor (dicegat AnchorScroll, URL tidak berubah);
+  // dari halaman lain ke beranda dengan ?s=id yang dibersihkan setelah menggulir. Tidak ada "#" di URL.
+  const onHome = routeKey === "home";
+  const section = (hash: string) => (onHome ? hash : `${home}?${SECTION_PARAM}=${hash.replace(/^#/, "")}`);
 
   useEffect(() => {
     if (!open) return;
@@ -60,7 +65,7 @@ export default function Header({ t, locale, routeKey }: Props) {
   return (
     <header className="sticky top-0 z-40 bg-surface border-b border-line">
       <div className="mx-auto max-w-content px-4 md:px-8 h-header flex items-center gap-3 md:gap-6">
-        <a href={`${home}#atas`} aria-label={t.header.logoAria} className="inline-flex rounded-sm">
+        <a href={onHome ? "#atas" : home} aria-label={t.header.logoAria} className="inline-flex rounded-sm">
           <Logo height={32} />
         </a>
 
@@ -68,7 +73,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           {t.nav.map((it) => (
             <a
               key={it.href}
-              href={`${home}${it.href}`}
+              href={section(it.href)}
               className="inline-flex items-center min-h-[44px] px-1 text-[14px] font-semibold text-ink no-underline hover:text-link rounded-sm"
             >
               {it.label}
@@ -76,7 +81,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           ))}
         </nav>
 
-        <Button href={`${home}${t.navCta.href}`} variant="primary" className="hidden xs:inline-flex ml-auto md:ml-0">
+        <Button href={section(t.navCta.href)} variant="primary" className="hidden xs:inline-flex ml-auto md:ml-0">
           {t.navCta.label}
         </Button>
 
@@ -112,7 +117,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           {t.nav.map((it) => (
             <li key={it.href}>
               <a
-                href={`${home}${it.href}`}
+                href={section(it.href)}
                 onClick={() => setOpen(false)}
                 className="flex items-center min-h-[44px] px-2 text-[16px] font-semibold text-ink no-underline rounded-sm hover:bg-surface-sunken"
               >
@@ -122,7 +127,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           ))}
           <li className="xs:hidden">
             <a
-              href={`${home}${t.navCta.href}`}
+              href={section(t.navCta.href)}
               onClick={() => setOpen(false)}
               className="flex items-center min-h-[44px] px-2 text-[16px] font-semibold text-link no-underline rounded-sm hover:bg-surface-sunken"
             >

@@ -20,7 +20,8 @@ npm run build && npm start   # produksi
 middleware.ts         deteksi bahasa (cookie > negara > Accept-Language), rewrite /→/id, redirect /en
 app/
   [locale]/layout.tsx       html lang, metadata dasar, JSON-LD, tautan lompat
-  [locale]/page.tsx         Header, Hero, Masalah, Layanan, Cara kerja, Kontak, Footer
+  [locale]/page.tsx         Header, Hero, Siapa kami, Masalah, Visi, Misi, Nilai, Layanan, Cara kerja,
+                            Katalog, Portofolio + studi kasus (bergerbang izin), Cara bekerja sama, Kontak, Footer
   [locale]/privasi/page.tsx kebijakan privasi Indonesia (/privasi)
   [locale]/privacy/page.tsx kebijakan privasi Inggris (/en/privacy)
   [locale]/not-found.tsx    404 berbahasa sesuai locale
@@ -32,8 +33,19 @@ content/id.ts, en.ts  naskah per bahasa (id setara landing-copy.json)
 lib/i18n/             locale, resolver, routes, kamus, metadata, format tanggal
 lib/site.ts           konfigurasi situs dan placeholder kontak
 lib/leads/            validasi, normalisasi, pesan dua bahasa, rate limit, Turnstile, penerusan
-public/               logo (svg/), ilustrasi, favicon, og-image, brand/
+public/               logo (svg/), ilustrasi, favicon, og-image, brand/, portfolio/ (hanya tangkapan layar versi blurred)
 ```
+
+## Docker dan deploy
+
+```bash
+docker network create fawz          # sekali; jaringan bersama dengan stack internal (repo fawz-internal)
+cp .env.docker.example .env.deploy  # isi LEADS_API_TOKEN (sama dengan stack internal) dan nilai NEXT_PUBLIC_*
+scripts/e2e-leads.sh                # uji E2E lokal: build kedua stack, kirim prospek, cek baris di PostgreSQL internal
+scripts/deploy.sh                   # build image lokal, kirim ke VPS (ssh "fawztech"), docker compose up di ~/fawztech-landing
+```
+
+`docker-compose.yml` hanya berisi service `landing` (terbuka di `127.0.0.1:3000`). Ia bergabung ke jaringan `fawz` yang dibuat stack internal agar prospek bisa diteruskan ke `http://internal:3100/api/public/leads`. Reverse proxy dan HTTPS ditangani nginx + certbot di host: `deploy/nginx/fawztech.id.conf` dipasang `scripts/deploy.sh`, lalu `certbot --nginx --redirect` menambahkan HTTPS untuk `fawztech.id` dan `www`. Jalankan stack internal lebih dulu. `NEXT_PUBLIC_*` dan `SITE_URL` dibakar saat build (halaman statis), jadi mengubahnya berarti build dan deploy ulang. Turnstile diverifikasi di landing saja; token Turnstile sekali pakai, sehingga stack internal tidak memverifikasinya lagi.
 
 ## Variabel lingkungan
 
@@ -46,6 +58,7 @@ Lihat `.env.example`. Ringkasnya:
 | `NEXT_PUBLIC_WA_NUMBER` | Nomor WhatsApp (`08…`/`+62…`/`62…`). Tombol WhatsApp disembunyikan bila kosong |
 | `NEXT_PUBLIC_INSTAGRAM`, `NEXT_PUBLIC_LINKEDIN` | Tautan sosial di footer |
 | `NEXT_PUBLIC_REPLY_DAYS` | Angka hari kerja pada pesan sukses form |
+| `NEXT_PUBLIC_PORTFOLIO_CLIENTS` | Slug klien yang sudah mengizinkan tayang (`arfindo-bersinar,menya-sakura,museum-nasional,kkara` atau `all`). Kosong = seksi Portofolio dan tautan navnya disembunyikan |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analitik tanpa cookie (opsional) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile (opsional; dilewati bila kosong) |
 | `LEADS_API_URL`, `LEADS_API_TOKEN` | Endpoint `POST /api/public/leads` sistem internal Fawz Tech |
@@ -81,13 +94,19 @@ Form "Ceritakan idemu" → `POST /api/leads` (same-origin) → validasi sesuai `
 
 Rate limit disimpan di memori proses. Untuk deploy multi-instance, ganti implementasi `RateLimiter` di `lib/leads/rate-limit.ts` dengan penyimpanan bersama.
 
+## Navigasi antar seksi
+
+Tautan nav dan tombol CTA menggulir ke seksi tanpa menulis `#id` ke URL (`app/components/ui/AnchorScroll.tsx` mencegat klik anchor di halaman yang sama). Dari halaman lain, header menautkan ke beranda dengan `?s=id`; setelah menggulir, parameter itu dihapus dari URL. Tanpa JavaScript tautan tetap bekerja sebagai anchor biasa.
+
 ## Desain
 
 - Token: `app/styles/tokens.css` adalah sumber kebenaran; Tailwind memetakan `bg-action`, `text-ink`, `rounded-md`, dan sebagainya ke variabel `--fawz-*`.
 - Tema gelap: `<html data-theme="dark">`. Seksi navy memakai kelas `theme-dark` agar token semantik otomatis gelap.
 - Amber tidak pernah menjadi warna teks di latar terang. Eyebrow memakai teal di latar terang, amber di latar navy.
-- Seksi portofolio dan testimoni sengaja tidak ada sampai ada data klien nyata dan izin.
+- Portofolio dan studi kasus Arfindo hanya tayang untuk klien yang ada di `NEXT_PUBLIC_PORTFOLIO_CLIENTS` (izin klien, brief §3). Tangkapan layar yang dipakai hanya versi `blurred`; versi `-original` diabaikan git dan tidak boleh dipublikasikan.
+- Testimoni dan Tim sengaja tidak ada: slide-nya dihapus dari company profile final (Oktober 2026).
+- Naskah memakai sapaan formal "Anda" (deck: "Bisnis Anda, Cara Anda"); handoff menyarankan "kamu" untuk web. Keputusan ada di tim bisnis.
 
 ## Yang masih harus diisi tim bisnis
 
-Domain, email, nomor WhatsApp, Instagram, LinkedIn, alamat lengkap, janji waktu balas, akun Turnstile, alat analitik, dan tinjauan hukum teks `/privasi` (naikkan `PRIVACY_POLICY_VERSION` di `lib/privacy.ts` setelah diubah).
+Domain (fawztech.id), Instagram, LinkedIn, alamat lengkap (saat ini "Jl Punai II" tanpa kota dan kode pos), izin klien portofolio (Arfindo Bersinar, Menya Sakura, Museum Nasional Indonesia, KKARA) termasuk persetujuan tangkapan layar Arfindo, akun Turnstile, alat analitik, pengecekan merek dagang (DJKI), dan tinjauan hukum teks `/privasi` (naikkan `PRIVACY_POLICY_VERSION` di `lib/privacy.ts` setelah diubah).

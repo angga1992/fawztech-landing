@@ -30,6 +30,8 @@ export const en = {
   nav: [
     { label: "Services", href: "#layanan" },
     { label: "How we work", href: "#cara-kerja" },
+    { label: "Portfolio", href: "#portofolio" },
+    { label: "Contact", href: "#kontak" },
   ],
   navCta: { label: "Start a Consultation", href: "#kontak" },
   hero: {
@@ -116,6 +118,94 @@ export const en = {
         text: "Planned system releases, team training, and ongoing support post-implementation.",
         image: "/illustrations/process-4-launch.svg",
       },
+    ],
+  },
+  about: {
+    eyebrow: "Who We Are",
+    h2: "Fawz Tech, Established in 2022.",
+    text: "We noticed that off-the-shelf applications rarely understand your business. We believe every business deserves a tailored approach.",
+    slogan: "Your Business, Your Way.",
+    image: "/illustrations/team-meeting.svg",
+    stats: [
+      { big: "2022", label: "the year we started" },
+      { big: "Fawz", label: "victory, success" },
+    ],
+    nameNote: "Fawz (\u0641\u0648\u0632) means victory or success.",
+  },
+  vision: {
+    eyebrow: "Vision",
+    h2: "Every Business Deserves a System That Truly Fits the Way It Works.",
+    text: "We aim to be the technology partner businesses call first when they need a new system.",
+  },
+  mission: {
+    eyebrow: "Mission",
+    h2: "Our Four Commitments.",
+    items: [
+      { n: "01", title: "Listen First", text: "Understand your process before writing code.", image: "/illustrations/mission-1-listen.svg" },
+      { n: "02", title: "Build Together", text: "You co-design and see regular demos.", image: "/illustrations/mission-2-together.svg" },
+      { n: "03", title: "Build What Gets Used", text: "Simple, fast, and used every day.", image: "/illustrations/mission-3-used.svg" },
+      { n: "04", title: "Support After Launch", text: "Ongoing training and support.", image: "/illustrations/mission-4-care.svg" },
+    ],
+  },
+  values: {
+    eyebrow: "Our Values",
+    h2: "Our Five Values.",
+    items: [
+      { title: "Together", text: "Clients co-design." },
+      { title: "Fit", text: "Follows your process." },
+      { title: "Clear", text: "Transparent pricing and timelines." },
+      { title: "Complete", text: "Still here after launch." },
+      { title: "Honest", text: "Willing to say when it is not needed." },
+    ],
+  },
+  catalogue: {
+    eyebrow: "Catalogue",
+    h2: "Starting Points You Can Choose From.",
+    sub: "Every module is tailored to your business process.",
+    items: [
+      { name: "Finance & Accounting", text: "Bookkeeping and financial reports." },
+      { name: "Preventive & Corrective Maintenance", text: "Maintenance schedules and repair tickets." },
+      { name: "Web & Mobile App Security", text: "Security hardening for web and mobile applications." },
+      { name: "E-commerce", text: "Online store with payments." },
+      { name: "Smart Building & Smart Housing System", text: "Building and residential control and monitoring." },
+      { name: "School & University System", text: "Academics, students, and administration." },
+      { name: "POS & Inventory", text: "Works offline." },
+      { name: "Attendance & HR", text: "Paperless leave requests." },
+    ],
+  },
+  portfolio: {
+    eyebrow: "Portfolio",
+    h2: "Selected Work.",
+    items: [
+      { slug: "arfindo-bersinar", client: "Arfindo Bersinar", title: "Quality Management System", type: "Web \u00b7 Mobile" },
+      { slug: "menya-sakura", client: "Menya Sakura", title: "Customer Loyalty App", type: "Mobile" },
+      { slug: "museum-nasional", client: "Museum Nasional Indonesia", title: "Artefact Showcase App", type: "Desktop" },
+      { slug: "kkara", client: "KKARA", title: "Cooperative Management App", type: "Web" },
+    ],
+    caseStudy: {
+      slug: "arfindo-bersinar",
+      eyebrow: "Case Study",
+      title: "Arfindo Bersinar: Quality Management System",
+      image: "/portfolio/arfindo-qms-dashboard-blurred.jpg",
+      imageAlt: "Arfindo QMS dashboard: operations menu, PO summary, and job list",
+      caption: "Arfindo QMS dashboard",
+      blocks: [
+        { label: "Challenge", text: "Business workflows ran entirely by hand. They needed a system that keeps every process under control." },
+        {
+          label: "What We Built",
+          text: "A quality management system: PO lists (goods, services, calibration), per-person job assignments, an issue log, complaint tickets, master data, and role-based access.",
+        },
+        { label: "Outcome", text: "Processes that used to be manual now run in one system: recorded, owned, and monitored through a dashboard." },
+      ],
+    },
+  },
+  engage: {
+    eyebrow: "How to Work With Us",
+    h2: "Three Ways to Start.",
+    items: [
+      { n: "A", title: "Defined Project", text: "Price and timeline set after discovery.", image: "/illustrations/engage-1-project.svg" },
+      { n: "B", title: "Monthly Team", text: "Monthly capacity with jointly agreed priorities.", image: "/illustrations/engage-2-monthly-team.svg" },
+      { n: "C", title: "Maintenance", text: "Fixes and updates for systems already in production.", image: "/illustrations/engage-3-support.svg" },
     ],
   },
   contact: {

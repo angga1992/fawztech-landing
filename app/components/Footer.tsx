@@ -32,17 +32,14 @@ export default function Footer({ t, locale }: { t: Dictionary; locale: Locale })
           <span>{site.phone}</span>
         )}
 
-        {isPlaceholder(site.instagram) ? (
-          <span>{site.instagram}</span>
-        ) : (
+        {/* Media sosial disembunyikan sampai akunnya diisi lewat env (bukan placeholder). */}
+        {!isPlaceholder(site.instagram) && (
           <a href={instagramUrl(site.instagram)} className={link} target="_blank" rel="noopener">
             {site.instagram}
           </a>
         )}
 
-        {isPlaceholder(site.linkedin) ? (
-          <span>{site.linkedin}</span>
-        ) : (
+        {!isPlaceholder(site.linkedin) && (
           <a href={site.linkedin} className={link} target="_blank" rel="noopener">
             LinkedIn
           </a>
