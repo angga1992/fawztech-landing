@@ -14,7 +14,7 @@ const blocks = [
 export default function Services({ t }: { t: Dictionary }) {
   const s = t.services;
   return (
-    <section id="layanan" className="bg-surface-sunken py-12 lg:py-16">
+    <section id="layanan" className="py-12 lg:py-16">
       <div className="mx-auto max-w-content px-4 md:px-8">
         <Eyebrow>{s.eyebrow}</Eyebrow>
         <h2 className="mt-2 text-display-lg-sm sm:text-display-lg">{s.h2}</h2>

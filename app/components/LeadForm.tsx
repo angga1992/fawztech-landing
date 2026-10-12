@@ -1,15 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import { fill, type Dictionary } from "@/lib/i18n/dictionary";
 import type { Messages } from "@/lib/leads/messages";
 import { MAX_STORY, validateLead, type LeadErrors } from "@/lib/leads/schema";
 import { PRIVACY_POLICY_VERSION } from "@/lib/privacy";
 import { site } from "@/lib/site";
-import { captchaProvider } from "@/lib/captcha/provider";
 import Button from "./ui/Button";
-import { useCaptcha } from "./useCaptcha";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (el: HTMLElement, opts: { sitekey: string; callback: (t: string) => void; "expired-callback"?: () => void }) => string;
+    };
+    grecaptcha?: {
+      ready: (cb: () => void) => void;
+      execute: (siteKey: string, opts: { action: string }) => Promise<string>;
+    };
+  }
+}
+
+/** Nama aksi reCAPTCHA v3; harus sama dengan yang diperiksa sistem internal. */
+const RECAPTCHA_ACTION = "lead_submit";
+const RECAPTCHA_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("timeout")), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
 
 type Values = {
   nama: string;
@@ -42,10 +63,11 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
   const [errors, setErrors] = useState<LeadErrors>({});
   const [status, setStatus] = useState<Status>("idle");
   const [formError, setFormError] = useState<string | null>(null);
+  const [token, setToken] = useState("");
   const utm = useRef({ utm_source: "", utm_medium: "", utm_campaign: "", page_url: "", referrer: "" });
-  const provider = captchaProvider();
-  const widgetRef = useRef<HTMLDivElement>(null);
-  const { ensureLoaded, getTokens } = useCaptcha(provider, widgetRef);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const turnstileLoaded = useRef(false);
+  const recaptchaLoad = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -58,6 +80,64 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
     };
     if (q.get("terkirim") === "1") setStatus("success");
   }, []);
+
+  // Muat skrip reCAPTCHA v3 secara malas saat pengguna pertama kali berinteraksi dengan form (sekali saja).
+  const ensureRecaptcha = useCallback((): Promise<void> => {
+    if (!site.recaptchaSiteKey) return Promise.resolve();
+    if (recaptchaLoad.current) return recaptchaLoad.current;
+    recaptchaLoad.current = new Promise<void>((resolve, reject) => {
+      if (window.grecaptcha) return window.grecaptcha.ready(resolve);
+      const s = document.createElement("script");
+      s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(site.recaptchaSiteKey)}`;
+      s.async = true;
+      s.defer = true;
+      s.onload = () => (window.grecaptcha ? window.grecaptcha.ready(resolve) : reject(new Error("grecaptcha")));
+      s.onerror = () => {
+        recaptchaLoad.current = null; // boleh dicoba lagi pada interaksi berikutnya
+        reject(new Error("recaptcha_script"));
+      };
+      document.head.appendChild(s);
+    });
+    return recaptchaLoad.current;
+  }, []);
+
+  // Token reCAPTCHA v3 untuk satu kiriman; string kosong bila skrip gagal (sistem internal yang menolak).
+  const recaptchaToken = useCallback(async (): Promise<string> => {
+    if (!site.recaptchaSiteKey) return "";
+    try {
+      await withTimeout(ensureRecaptcha(), RECAPTCHA_TIMEOUT_MS);
+      return await withTimeout(window.grecaptcha!.execute(site.recaptchaSiteKey, { action: RECAPTCHA_ACTION }), RECAPTCHA_TIMEOUT_MS);
+    } catch {
+      return "";
+    }
+  }, [ensureRecaptcha]);
+
+  // Muat Turnstile secara malas saat pengguna pertama kali berinteraksi dengan form (hanya bila reCAPTCHA tidak dipakai).
+  const ensureTurnstile = useCallback(() => {
+    if (site.recaptchaSiteKey || !site.turnstileSiteKey || turnstileLoaded.current) return;
+    turnstileLoaded.current = true;
+    const render = () => {
+      if (turnstileRef.current && window.turnstile) {
+        window.turnstile.render(turnstileRef.current, {
+          sitekey: site.turnstileSiteKey,
+          callback: (t) => setToken(t),
+          "expired-callback": () => setToken(""),
+        });
+      }
+    };
+    if (window.turnstile) return render();
+    const s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.defer = true;
+    s.onload = render;
+    document.head.appendChild(s);
+  }, []);
+
+  const ensureCaptcha = useCallback(() => {
+    if (site.recaptchaSiteKey) void ensureRecaptcha().catch(() => {});
+    else ensureTurnstile();
+  }, [ensureRecaptcha, ensureTurnstile]);
 
   const set = <K extends keyof Values>(k: K, v: Values[K]) => setValues((s) => ({ ...s, [k]: v }));
 
@@ -79,15 +159,15 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
     setErrors({});
     setStatus("submitting");
     try {
-      // Token captcha diminta tepat sebelum kirim (reCAPTCHA v3: sekali pakai, berlaku 2 menit).
-      const tokens = await getTokens();
+      const recaptcha_token = await recaptchaToken();
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           ...values,
           website: "",
-          ...tokens,
+          turnstile_token: token,
+          recaptcha_token,
           privacy_version: PRIVACY_POLICY_VERSION,
           locale,
           ...utm.current,
@@ -102,7 +182,8 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
       if (res.status === 422) {
         const body = (await res.json().catch(() => ({}))) as { errors?: LeadErrors };
         const errs = body.errors ?? {};
-        if (errs.captcha || errs.turnstile) setFormError(errs.captcha ?? errs.turnstile ?? null);
+        const captchaErr = errs.captcha ?? errs.turnstile;
+        if (captchaErr) setFormError(captchaErr);
         setErrors(errs);
         focusFirstError(errs);
         return;
@@ -149,7 +230,7 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
       action="/api/leads"
       noValidate
       onSubmit={onSubmit}
-      onFocusCapture={ensureLoaded}
+      onFocusCapture={ensureCaptcha}
       className="theme-dark bg-surface-raised border border-line rounded-lg p-6 grid gap-[18px]"
     >
       <div>
@@ -297,7 +378,22 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
         {err("setuju")}
       </div>
 
-      {provider === "turnstile" ? <div ref={widgetRef} /> : null}
+      {site.recaptchaSiteKey ? (
+        /* Wajib bila badge reCAPTCHA disembunyikan (lihat .grecaptcha-badge di globals.css). */
+        <p className="text-body-sm text-ink-muted">
+          {c.recaptchaBefore}
+          <a href="https://policies.google.com/privacy" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
+            {c.recaptchaPrivacy}
+          </a>
+          {c.recaptchaMiddle}
+          <a href="https://policies.google.com/terms" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
+            {c.recaptchaTerms}
+          </a>
+          {c.recaptchaAfter}
+        </p>
+      ) : site.turnstileSiteKey ? (
+        <div ref={turnstileRef} />
+      ) : null}
 
       {formError ? (
         <p role="alert" className="text-body-sm text-danger">
@@ -317,24 +413,6 @@ export default function LeadForm({ t: c, messages, locale, privacyHref, whatsapp
         <Button type="submit" variant="amber" disabled={status === "submitting"}>
           {status === "submitting" ? c.submitting : c.submit}
         </Button>
-        {provider === "recaptcha" ? (
-          /* Atribusi wajib Google karena badge reCAPTCHA disembunyikan. */
-          <p className="mt-3 text-body-sm text-ink-muted">
-            {c.captchaNotice.split(/(\{privacy\}|\{terms\})/).map((part, i) =>
-              part === "{privacy}" ? (
-                <a key={i} href="https://policies.google.com/privacy" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
-                  {c.captchaPrivacy}
-                </a>
-              ) : part === "{terms}" ? (
-                <a key={i} href="https://policies.google.com/terms" className="text-link underline underline-offset-2" target="_blank" rel="noopener">
-                  {c.captchaTerms}
-                </a>
-              ) : (
-                part
-              )
-            )}
-          </p>
-        ) : null}
       </div>
     </form>
   );

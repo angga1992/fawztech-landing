@@ -70,6 +70,11 @@ svg {
   transform: none;
 }
 
+/* Badge reCAPTCHA disembunyikan; sebagai gantinya form menampilkan teks wajib Google (LeadForm). */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* Honeypot: di luar viewport, tidak bisa di-Tab. */
 .hp {
   position: absolute;
@@ -111,9 +116,4 @@ html {
 }
 [data-theme="dark"] .logo-dark {
   display: block;
-}
-
-/* Badge reCAPTCHA disembunyikan; atribusi wajib ditampilkan sebagai teks di bawah tombol kirim. */
-.grecaptcha-badge {
-  visibility: hidden;
 }

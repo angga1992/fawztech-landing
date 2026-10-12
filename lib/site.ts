@@ -22,10 +22,24 @@ function env(value: string | undefined, fallback: string): string {
 
 const waRaw = env(process.env.NEXT_PUBLIC_WA_NUMBER, "");
 
+/** Slug klien portofolio (urutan tampil). Tayang hanya bila klien sudah mengizinkan; lihat NEXT_PUBLIC_PORTFOLIO_CLIENTS. */
+export const PORTFOLIO_CLIENTS = ["arfindo-bersinar", "menya-sakura", "museum-nasional", "kkara"] as const;
+export type PortfolioClient = (typeof PORTFOLIO_CLIENTS)[number];
+
+function parsePortfolio(raw: string): readonly PortfolioClient[] {
+  const v = raw.trim().toLowerCase();
+  if (v === "") return [];
+  if (v === "all") return PORTFOLIO_CLIENTS;
+  const wanted = new Set(v.split(",").map((x) => x.trim()));
+  return PORTFOLIO_CLIENTS.filter((c) => wanted.has(c));
+}
+
 export const site = {
   name: "Fawz Tech",
   tagline: "Sistem yang pas untuk bisnismu, dibangun bersama.",
-  address: "Bintaro Sektor 2",
+  // Alamat sesuai company profile final (Oktober 2026); lengkapi kota dan kode pos bila sudah ada.
+  address: "Jl Punai II",
+  foundingYear: "2022",
   url: env(process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL, PLACEHOLDER.url),
   email: env(process.env.NEXT_PUBLIC_CONTACT_EMAIL, PLACEHOLDER.email),
   phone: env(process.env.NEXT_PUBLIC_CONTACT_PHONE, waRaw || PLACEHOLDER.phone),
@@ -35,9 +49,21 @@ export const site = {
   linkedin: env(process.env.NEXT_PUBLIC_LINKEDIN, PLACEHOLDER.linkedin),
   replyDays: env(process.env.NEXT_PUBLIC_REPLY_DAYS, PLACEHOLDER.replyDays),
   plausibleDomain: env(process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN, ""),
-  turnstileSiteKey: env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY, ""),
+  /** reCAPTCHA v3 (diutamakan bila diisi; token diverifikasi di sistem internal). */
   recaptchaSiteKey: env(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, ""),
+  /** Cloudflare Turnstile (alternatif bila site key reCAPTCHA kosong; diverifikasi di landing). */
+  turnstileSiteKey: env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY, ""),
+  /** Klien portofolio yang boleh tayang (kosong = seksi portofolio dan tautan navnya disembunyikan). */
+  portfolioClients: parsePortfolio(process.env.NEXT_PUBLIC_PORTFOLIO_CLIENTS ?? ""),
 } as const;
+
+export function isPortfolioAllowed(slug: string): boolean {
+  return (site.portfolioClients as readonly string[]).includes(slug);
+}
+
+export function portfolioVisible(): boolean {
+  return site.portfolioClients.length > 0;
+}
 
 /** Daftar nilai yang masih placeholder; dipakai untuk peringatan saat build. */
 export function placeholderKeys(): string[] {

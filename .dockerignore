@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.env*
+!.env.example
+coverage
+tsconfig.tsbuildinfo
+openspec
+.claude
+*.md
+!README.md
+scripts/deploy.sh
+scripts/e2e-leads.sh
+docker-compose.yml
+deploy

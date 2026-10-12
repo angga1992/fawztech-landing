@@ -7,6 +7,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Image Docker memakai keluaran standalone (server.js + dependensi yang terpakai saja). Lihat Dockerfile.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,

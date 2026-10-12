@@ -34,10 +34,6 @@ describe("kamus id dan en", () => {
     for (const d of [id, en]) {
       expect(d.contact.form.success).toContain("{X}");
       expect(d.contact.form.remaining).toContain("{n}");
-      expect(d.contact.form.captchaNotice).toContain("{privacy}");
-      expect(d.contact.form.captchaNotice).toContain("{terms}");
-      expect(d.contact.form.captchaPrivacy).not.toBe("");
-      expect(d.contact.form.captchaTerms).not.toBe("");
       expect(d.privacy.version).toContain("{date}");
       const all = JSON.stringify(d.privacy.sections);
       for (const t of ["{name}", "{address}", "{months}", "{email}"]) expect(all).toContain(t);
@@ -62,8 +58,7 @@ describe("kamus id dan en", () => {
   });
 
   it("getDictionary dan fill", () => {
-    expect(getDictionary("en").meta.title).toMatch(/^Fawz Tech \| .+/);
-    expect(getDictionary("en").meta.title).not.toBe(getDictionary("id").meta.title);
+    expect(getDictionary("en").meta.title).toBe("Fawz Tech | Bespoke Software Solutions & Digital Strategy");
     expect(getDictionary("id").meta.ogLocale).toBe("id_ID");
     expect(fill("Sisa {n} karakter.", { n: 5 })).toBe("Sisa 5 karakter.");
     expect(fill("{a} {b}", { a: "x" })).toBe("x {b}");

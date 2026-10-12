@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "../globals.css";
+import AnchorScroll from "../components/ui/AnchorScroll";
 import colors from "@/public/brand/colors.json";
 import { LOCALES, isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -53,6 +54,7 @@ function orgJsonLd(locale: "id" | "en") {
     url: site.url,
     logo: absoluteUrl("/svg/fawz-tech-logo-primary.svg"),
     inLanguage: locale,
+    foundingDate: site.foundingYear,
     address: { "@type": "PostalAddress", streetAddress: site.address, addressCountry: "ID" },
   };
   if (!isPlaceholder(site.email)) ld.email = site.email;
@@ -84,6 +86,7 @@ export default function LocaleLayout({
           {t.skipLink}
         </a>
         {children}
+        <AnchorScroll />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd(locale)) }} />
         {site.plausibleDomain ? (
           <Script defer data-domain={site.plausibleDomain} src="https://plausible.io/js/script.js" strategy="afterInteractive" />

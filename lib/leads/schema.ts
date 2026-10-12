@@ -26,6 +26,7 @@ export type LeadPayload = {
   setuju: true;
   website: string;
   turnstile_token: string;
+  /** Token reCAPTCHA v3 (aksi lead_submit); sekali pakai, diverifikasi hanya di sistem internal. */
   recaptcha_token: string;
   utm_source: string;
   utm_medium: string;
@@ -35,7 +36,7 @@ export type LeadPayload = {
   privacy_version: string;
 };
 
-export type LeadErrors = Partial<Record<keyof LeadPayload | "captcha" | "turnstile", string>>;
+export type LeadErrors = Partial<Record<keyof LeadPayload | "turnstile" | "captcha", string>>;
 
 export type ValidationResult = { ok: true; data: LeadPayload } | { ok: false; errors: LeadErrors };
 
