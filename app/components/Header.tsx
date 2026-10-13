@@ -122,6 +122,10 @@ export default function Header({ t, locale, routeKey }: Props) {
           {t.navCta.label}
         </Button>
 
+        {/* Toggle bendera: paling kanan di desktop; di mobile tepat di kiri hamburger. < 380px tombol utama
+            disembunyikan (tetap ada di panel), jadi toggle yang mendorong ke kanan. */}
+        <div className="max-[379px]:ml-auto shrink-0">{toggle}</div>
+
         <button
           type="button"
           ref={toggleRef}
@@ -129,8 +133,7 @@ export default function Header({ t, locale, routeKey }: Props) {
           aria-label={t.header.menuOpen}
           aria-expanded={open}
           aria-controls="menu-mobile"
-          // < 380px tombol utama disembunyikan (tetap ada di panel), jadi hamburger yang mendorong ke kanan.
-          className="lg:hidden max-[379px]:ml-auto inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
+          className="lg:hidden inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
             <path d="M4 7h16" />
@@ -138,9 +141,6 @@ export default function Header({ t, locale, routeKey }: Props) {
             <path d="M4 17h16" />
           </svg>
         </button>
-
-        {/* Toggle bendera selalu paling kanan, juga di mobile (setelah hamburger). */}
-        {toggle}
       </div>
 
       {/* Latar gelap di balik panel (hanya < lg). */}
