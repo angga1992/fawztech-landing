@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import type { HeaderDictionary } from "@/lib/i18n/dictionary";
 import { pathFor, type RouteKey } from "@/lib/i18n/routes";
@@ -27,14 +27,44 @@ export default function Header({ t, locale, routeKey }: Props) {
   const onHome = routeKey === "home";
   const section = (hash: string) => (onHome ? hash : `${home}?${SECTION_PARAM}=${hash.replace(/^#/, "")}`);
 
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  // Ditutup karena memilih tautan seksi: fokus dibiarkan pada seksi tujuan (AnchorScroll), bukan kembali ke tombol menu.
+  const closedByLink = useRef(false);
+
+  // Panel samping kanan (< lg), meniru menu fawz-internal: latar gelap, Escape, kunci scroll, fokus dikelola.
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    if (open) {
+      wasOpen.current = true;
+      document.body.style.overflow = "hidden";
+      const raf = requestAnimationFrame(() => closeRef.current?.focus());
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setOpen(false);
+      };
+      // Bila jendela melebar ke desktop saat panel terbuka, tutup supaya kunci scroll tidak tertinggal.
+      const mq = window.matchMedia("(min-width: 1024px)");
+      const onChange = () => mq.matches && setOpen(false);
+      document.addEventListener("keydown", onKey);
+      mq.addEventListener("change", onChange);
+      return () => {
+        cancelAnimationFrame(raf);
+        document.removeEventListener("keydown", onKey);
+        mq.removeEventListener("change", onChange);
+      };
+    }
+    document.body.style.overflow = "";
+    if (wasOpen.current) {
+      wasOpen.current = false;
+      if (!closedByLink.current) toggleRef.current?.focus();
+      closedByLink.current = false;
+    }
   }, [open]);
+
+  const closeFromLink = () => {
+    closedByLink.current = true;
+    setOpen(false);
+  };
 
   // Toggle bendera: satu tautan ke locale lain; bendera aktif ditonjolkan, yang lain diredupkan.
   const otherLabel = other === "id" ? t.switcher.labelId : t.switcher.labelEn;
@@ -94,25 +124,17 @@ export default function Header({ t, locale, routeKey }: Props) {
 
         <button
           type="button"
-          onClick={() => setOpen((s) => !s)}
-          aria-label={open ? t.header.menuClose : t.header.menuOpen}
+          ref={toggleRef}
+          onClick={() => setOpen(true)}
+          aria-label={t.header.menuOpen}
           aria-expanded={open}
           aria-controls="menu-mobile"
           className="lg:hidden inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-            {open ? (
-              <>
-                <path d="M6 6l12 12" />
-                <path d="M18 6L6 18" />
-              </>
-            ) : (
-              <>
-                <path d="M4 7h16" />
-                <path d="M4 12h16" />
-                <path d="M4 17h16" />
-              </>
-            )}
+            <path d="M4 7h16" />
+            <path d="M4 12h16" />
+            <path d="M4 17h16" />
           </svg>
         </button>
 
@@ -120,36 +142,67 @@ export default function Header({ t, locale, routeKey }: Props) {
         <div className="hidden lg:block">{toggle}</div>
       </div>
 
-      {/* Panel menu mobile: tautan seksi, pengalih bahasa, dan tombol utama. */}
-      <nav
+      {/* Latar gelap di balik panel (hanya < lg). */}
+      <div
+        aria-hidden="true"
+        onClick={() => setOpen(false)}
+        className={`lg:hidden fixed inset-0 z-40 bg-[rgba(7,26,47,0.6)] transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      />
+
+      {/* Panel menu mobile dari kanan: tautan seksi, pengalih bahasa, dan tombol utama. */}
+      <div
         id="menu-mobile"
+        role={open ? "dialog" : undefined}
+        aria-modal={open ? true : undefined}
         aria-label={t.header.navAria}
-        hidden={!open}
-        className="lg:hidden absolute left-0 right-0 top-full border-b border-line bg-surface max-h-[calc(100vh-var(--header-h))] overflow-y-auto"
+        className={`lg:hidden theme-dark fixed inset-y-0 right-0 z-50 flex w-[min(320px,85vw)] flex-col bg-navy-900 text-ink shadow-[-12px_0_32px_rgba(7,26,47,0.35)] duration-200 ease-out ${
+          // Buka: langsung visible (agar fokus ke tombol × diterima), hanya transform yang beranimasi.
+          // Tutup: visibility ikut ditransisikan supaya panel baru disembunyikan setelah selesai bergeser.
+          open ? "translate-x-0 visible transition-transform" : "translate-x-full invisible transition-[transform,visibility]"
+        }`}
       >
-        <ul className="mx-auto max-w-content px-4 py-2">
-          {t.nav.map((it) => (
-            <li key={it.href}>
-              <a
-                href={section(it.href)}
-                onClick={() => setOpen(false)}
-                className="flex items-center min-h-[48px] px-2 text-[16px] font-semibold text-ink no-underline rounded-sm hover:bg-surface-sunken"
-              >
-                {it.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <div className="mx-auto max-w-content px-4 pb-4 pt-3 border-t border-line flex items-center justify-between gap-3">
+        <div className="flex h-header shrink-0 items-center justify-between border-b border-line pl-5 pr-3">
+          <Logo variant="dark" height={24} />
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label={t.header.menuClose}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line-strong text-ink"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12" />
+              <path d="M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <nav aria-label={t.header.navAria} className="flex-1 overflow-y-auto px-3 py-3">
+          <ul className="grid gap-0.5">
+            {t.nav.map((it) => (
+              <li key={it.href}>
+                <a
+                  href={section(it.href)}
+                  onClick={closeFromLink}
+                  className="flex items-center min-h-[48px] px-3 rounded-md text-[16px] font-semibold text-ink-muted no-underline hover:bg-surface-raised hover:text-ink"
+                >
+                  {it.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="border-t border-line px-5 py-5 grid gap-4">
           <div className="flex items-center gap-3">
             {toggle}
             <span className="text-body-sm text-ink-muted">{locale === "id" ? t.switcher.labelId : t.switcher.labelEn}</span>
           </div>
-          <Button href={section(t.navCta.href)} variant="primary" className="whitespace-nowrap" onClick={() => setOpen(false)}>
+          <Button href={section(t.navCta.href)} variant="amber" onClick={closeFromLink} className="w-full whitespace-nowrap">
             {t.navCta.label}
           </Button>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }
