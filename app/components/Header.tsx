@@ -117,7 +117,7 @@ export default function Header({ t, locale, routeKey }: Props) {
         <Button
           href={section(t.navCta.href)}
           variant="primary"
-          className="ml-auto lg:ml-0 whitespace-nowrap px-3 sm:px-4 lg:px-5 shrink-0"
+          className="max-[379px]:hidden ml-auto lg:ml-0 whitespace-nowrap px-3 sm:px-4 lg:px-5 shrink-0"
         >
           {t.navCta.label}
         </Button>
@@ -129,7 +129,8 @@ export default function Header({ t, locale, routeKey }: Props) {
           aria-label={t.header.menuOpen}
           aria-expanded={open}
           aria-controls="menu-mobile"
-          className="lg:hidden inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
+          // < 380px tombol utama disembunyikan (tetap ada di panel), jadi hamburger yang mendorong ke kanan.
+          className="lg:hidden max-[379px]:ml-auto inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-sm border border-line-strong text-ink"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
             <path d="M4 7h16" />
@@ -138,8 +139,8 @@ export default function Header({ t, locale, routeKey }: Props) {
           </svg>
         </button>
 
-        {/* Desktop (lg+): toggle bendera paling kanan. Di bawah lg toggle ada di dalam menu. */}
-        <div className="hidden lg:block">{toggle}</div>
+        {/* Toggle bendera selalu paling kanan, juga di mobile (setelah hamburger). */}
+        {toggle}
       </div>
 
       {/* Latar gelap di balik panel (hanya < lg). */}
@@ -149,7 +150,7 @@ export default function Header({ t, locale, routeKey }: Props) {
         className={`lg:hidden fixed inset-0 z-40 bg-[rgba(7,26,47,0.6)] transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       />
 
-      {/* Panel menu mobile dari kanan: tautan seksi, pengalih bahasa, dan tombol utama. */}
+      {/* Panel menu mobile dari kanan: tautan seksi dan tombol utama (pengalih bahasa ada di bar atas). */}
       <div
         id="menu-mobile"
         role={open ? "dialog" : undefined}
@@ -194,10 +195,6 @@ export default function Header({ t, locale, routeKey }: Props) {
         </nav>
 
         <div className="border-t border-line px-5 py-5 grid gap-4">
-          <div className="flex items-center gap-3">
-            {toggle}
-            <span className="text-body-sm text-ink-muted">{locale === "id" ? t.switcher.labelId : t.switcher.labelEn}</span>
-          </div>
           <Button href={section(t.navCta.href)} variant="amber" onClick={closeFromLink} className="w-full whitespace-nowrap">
             {t.navCta.label}
           </Button>
